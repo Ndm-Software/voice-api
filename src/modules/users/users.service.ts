@@ -3,14 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 /**
- * AuthService register sırasında bu veri yapısını kullanacak.
+ * AuthService register işlemi sırasında bu veri yapısını gönderir.
  *
  * Kullanıcı dışarıdan passwordHash göndermez.
- * AuthService düz şifreyi hashler ve bu servise passwordHash olarak yollar.
+ * AuthService düz şifreyi bcrypt ile hashler ve buraya gönderir.
  */
 export interface CreateUserData {
   firstName: string;
@@ -21,8 +22,8 @@ export interface CreateUserData {
 }
 
 /**
- * API cevaplarında passwordHash dönmemesi için
- * yalnızca güvenli kullanıcı alanlarını seçiyoruz.
+ * Kullanıcı bilgileri API cevabında dönerken
+ * passwordHash alanının kesinlikle dönmemesi için kullanılır.
  */
 const safeUserSelect = {
   userId: true,
@@ -40,9 +41,9 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Kullanıcıyı ID ile getirir.
+   * Kullanıcıyı ID ile bulur.
    *
-   * Kullanıcı bulunamazsa 404 Not Found hatası verir.
+   * Profil endpointleri bu metodu kullanır.
    * passwordHash response içerisinde dönmez.
    */
   async findById(userId: number) {
@@ -61,13 +62,13 @@ export class UsersService {
   }
 
   /**
-   * Kullanıcıyı email adresine göre bulur.
+   * Kullanıcıyı e-posta adresine göre bulur.
    *
-   * Auth modülü bunu register ve login sırasında kullanacak.
-   * Burada passwordHash alanına ihtiyaç olabileceği için
-   * safeUserSelect kullanmıyoruz.
+   * AuthService register ve login sırasında kullanır.
+   * Login işlemi passwordHash alanına ihtiyaç duyduğu için
+   * burada safeUserSelect kullanılmaz.
    *
-   * Bu metodun sonucunu doğrudan API response olarak döndürmemeliyiz.
+   * Bu metodun sonucu doğrudan controller response'u olarak dönülmemelidir.
    */
   async findByEmail(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
@@ -82,7 +83,7 @@ export class UsersService {
   /**
    * Kullanıcıyı telefon numarasına göre bulur.
    *
-   * Aynı telefon numarasıyla birden fazla hesap
+   * Aynı telefon numarasıyla birden fazla kullanıcı
    * oluşturulmasını engellemek için kullanılır.
    */
   async findByPhoneNumber(phoneNumber: string) {
@@ -96,11 +97,12 @@ export class UsersService {
   /**
    * Yeni kullanıcı oluşturur.
    *
-   * Bu metot doğrudan UsersController tarafından çağrılmayacak.
-   * AuthService register işleminde şifreyi hashledikten sonra çağıracak.
+   * Bu metodu UsersController çağırmaz.
+   * AuthService register sırasında şifreyi hashledikten sonra çağırır.
    */
   async create(data: CreateUserData) {
     const normalizedEmail = data.email.trim().toLowerCase();
+    const normalizedPhoneNumber = data.phoneNumber.trim();
 
     const existingEmail = await this.findByEmail(normalizedEmail);
 
@@ -110,7 +112,8 @@ export class UsersService {
       );
     }
 
-    const existingPhone = await this.findByPhoneNumber(data.phoneNumber);
+    const existingPhone =
+      await this.findByPhoneNumber(normalizedPhoneNumber);
 
     if (existingPhone) {
       throw new ConflictException(
@@ -123,7 +126,7 @@ export class UsersService {
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
         email: normalizedEmail,
-        phoneNumber: data.phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         passwordHash: data.passwordHash,
       },
       select: safeUserSelect,
@@ -131,14 +134,13 @@ export class UsersService {
   }
 
   /**
-   * Kullanıcının profil bilgilerini günceller.
-   *
-   * Güncellenebilen alanlar UpdateUserDto içerisinde belirlenir.
+   * Giriş yapan kullanıcının profil bilgilerini günceller.
    */
   async update(userId: number, dto: UpdateUserDto) {
     await this.findById(userId);
 
     const normalizedEmail = dto.email?.trim().toLowerCase();
+    const normalizedPhoneNumber = dto.phoneNumber?.trim();
 
     if (normalizedEmail) {
       const existingEmail = await this.findByEmail(normalizedEmail);
@@ -150,8 +152,9 @@ export class UsersService {
       }
     }
 
-    if (dto.phoneNumber) {
-      const existingPhone = await this.findByPhoneNumber(dto.phoneNumber);
+    if (normalizedPhoneNumber) {
+      const existingPhone =
+        await this.findByPhoneNumber(normalizedPhoneNumber);
 
       if (existingPhone && existingPhone.userId !== userId) {
         throw new ConflictException(
@@ -160,7 +163,22 @@ export class UsersService {
       }
     }
 
-    const phoneNumberChanged = dto.phoneNumber !== undefined;
+    const currentUser = await this.prisma.user.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        phoneNumber: true,
+      },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('Kullanıcı bulunamadı.');
+    }
+
+    const phoneNumberChanged =
+      normalizedPhoneNumber !== undefined &&
+      normalizedPhoneNumber !== currentUser.phoneNumber;
 
     return this.prisma.user.update({
       where: {
@@ -179,20 +197,20 @@ export class UsersService {
             }
           : {}),
 
-        ...(normalizedEmail
+        ...(normalizedEmail !== undefined
           ? {
               email: normalizedEmail,
             }
           : {}),
 
-        ...(dto.phoneNumber !== undefined
+        ...(normalizedPhoneNumber !== undefined
           ? {
-              phoneNumber: dto.phoneNumber,
+              phoneNumber: normalizedPhoneNumber,
             }
           : {}),
 
         /**
-         * Telefon numarası değiştirildiyse
+         * Telefon numarası gerçekten değiştiyse
          * yeni telefon tekrar OTP ile doğrulanmalıdır.
          */
         ...(phoneNumberChanged
@@ -206,7 +224,7 @@ export class UsersService {
   }
 
   /**
-   * Kullanıcı hesabını siler.
+   * Giriş yapan kullanıcının hesabını siler.
    */
   async remove(userId: number) {
     await this.findById(userId);

@@ -1,57 +1,57 @@
-/**
- * TEMPORARY DEVELOPMENT ENDPOINTS
- *
- * Auth entegrasyonundan sonra:
- * - :userId kullanan endpointler kaldırılacak.
- * - Kullanıcı ID'si JWT üzerinden alınacak.
- * - GET /users/me
- * - PATCH /users/me
- * - DELETE /users/me
- */
-
 import {
   Body,
   Controller,
   Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Patch,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
+type AuthenticatedRequest = Request & {
+  user: {
+    userId: number;
+    email: string;
+  };
+};
+
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
-   * Geçici local test endpointidir.
-   * Auth tamamlandığında GET /users/me olacak.
+   * Giriş yapan kullanıcının güncel profil bilgilerini getirir.
+   *
+   * Kullanıcı ID'si URL'den alınmaz.
+   * JwtStrategy tarafından req.user içine yerleştirilir.
    */
-  @Get(':userId')
-  findById(@Param('userId', ParseIntPipe) userId: number) {
-    return this.usersService.findById(userId);
+  @Get('me')
+  getMe(@Req() req: AuthenticatedRequest) {
+    return this.usersService.findById(req.user.userId);
   }
 
   /**
-   * Geçici local test endpointidir.
-   * Auth tamamlandığında PATCH /users/me olacak.
+   * Giriş yapan kullanıcının profil bilgilerini günceller.
    */
-  @Patch(':userId')
-  update(
-    @Param('userId', ParseIntPipe) userId: number,
+  @Patch('me')
+  updateMe(
+    @Req() req: AuthenticatedRequest,
     @Body() dto: UpdateUserDto,
   ) {
-    return this.usersService.update(userId, dto);
+    return this.usersService.update(req.user.userId, dto);
   }
 
   /**
-   * Geçici local test endpointidir.
-   * Auth tamamlandığında DELETE /users/me olacak.
+   * Giriş yapan kullanıcının hesabını siler.
    */
-  @Delete(':userId')
-  remove(@Param('userId', ParseIntPipe) userId: number) {
-    return this.usersService.remove(userId);
+  @Delete('me')
+  removeMe(@Req() req: AuthenticatedRequest) {
+    return this.usersService.remove(req.user.userId);
   }
 }
