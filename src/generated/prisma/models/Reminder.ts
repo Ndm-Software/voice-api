@@ -737,10 +737,6 @@ export type ReminderUncheckedCreateNestedManyWithoutParentReminderInput = {
   connect?: Prisma.ReminderWhereUniqueInput | Prisma.ReminderWhereUniqueInput[];
 };
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null;
-};
-
 export type EnumRepeatTypeFieldUpdateOperationsInput = {
   set?: $Enums.RepeatType;
 };

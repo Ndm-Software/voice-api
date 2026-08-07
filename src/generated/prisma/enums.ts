@@ -12,6 +12,7 @@ export const PlatformType = {
   WEB: 'WEB',
   ANDROID: 'ANDROID',
   IOS: 'IOS',
+  WINDOWS: 'WINDOWS',
 } as const;
 
 export type PlatformType = (typeof PlatformType)[keyof typeof PlatformType];

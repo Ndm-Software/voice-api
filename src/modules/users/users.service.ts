@@ -223,9 +223,6 @@ export class UsersService {
     });
   }
 
-  /**
-   * Giriş yapan kullanıcının hesabını siler.
-   */
   async remove(userId: number) {
     await this.findById(userId);
 
