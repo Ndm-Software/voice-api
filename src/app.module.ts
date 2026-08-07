@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { VoiceCallSettingsModule } from './modules/voice-call-settings/voice-call-settings.module';
+import { LanguagesModule } from './modules/languages/languages.module';
+import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { VoiceCallSettingsModule } from './modules/voice-call-settings/voice-cal
     AuthModule,
     UsersModule,
     VoiceCallSettingsModule,
+    LanguagesModule,
+    UserSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -13,7 +13,7 @@ import {
 import { VoiceCallSettingsService } from './voice-call-settings.service';
 import { CreateVoiceCallSettingDto } from './dto/create-voice-call-setting.dto';
 import { UpdateVoiceCallSettingDto } from './dto/update-voice-call-setting.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller('voice-call-settings')
 @UseGuards(JwtAuthGuard)

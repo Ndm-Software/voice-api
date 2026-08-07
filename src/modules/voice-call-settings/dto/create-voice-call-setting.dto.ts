@@ -1,4 +1,3 @@
-export class CreateVoiceCallSettingDto {}
 import { IsBoolean, IsInt } from 'class-validator';
 
 export class CreateVoiceCallSettingDto {
