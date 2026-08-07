@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../generated/prisma/client';
 import { PlatformType } from '../../generated/prisma/enums';
@@ -66,6 +66,9 @@ describe('DevicesService', () => {
   let findMany: jest.MockedFunction<
     (args: Prisma.DeviceFindManyArgs) => Promise<DeviceResponse[]>
   >;
+  let updateMany: jest.MockedFunction<
+    (args: Prisma.DeviceUpdateManyArgs) => Promise<Prisma.BatchPayload>
+  >;
   let runTransaction: jest.MockedFunction<RunTransaction>;
   let service: DevicesService;
 
@@ -75,12 +78,14 @@ describe('DevicesService', () => {
     update = jest.fn();
     upsert = jest.fn();
     findMany = jest.fn();
+    updateMany = jest.fn();
 
     findFirst.mockResolvedValue(null);
     findUnique.mockResolvedValue(null);
     update.mockResolvedValue(undefined);
     upsert.mockResolvedValue(device);
     findMany.mockResolvedValue([device]);
+    updateMany.mockResolvedValue({ count: 1 });
 
     const transaction = {
       device: {
@@ -96,7 +101,9 @@ describe('DevicesService', () => {
     service = new DevicesService({
       $transaction: runTransaction,
       device: {
+        findFirst,
         findMany,
+        updateMany,
       },
     } as unknown as PrismaService);
   });
@@ -130,6 +137,59 @@ describe('DevicesService', () => {
         createdAt: true,
       },
     });
+  });
+
+  it('returns only an active device owned by the user', async () => {
+    findFirst.mockResolvedValue({ deviceId: device.deviceId });
+
+    await expect(
+      service.requireActiveOwnedDevice(userId, device.deviceId),
+    ).resolves.toEqual({
+      deviceId: device.deviceId,
+    });
+    expect(findFirst).toHaveBeenCalledWith({
+      where: {
+        deviceId: device.deviceId,
+        userId,
+        isActive: true,
+      },
+      select: {
+        deviceId: true,
+      },
+    });
+  });
+
+  it('does not expose whether an unavailable device belongs to another user', async () => {
+    findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.requireActiveOwnedDevice(userId, device.deviceId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('deactivates an owned device and clears both push token fields', async () => {
+    await expect(
+      service.deactivateOwnedDevice(userId, device.deviceId),
+    ).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        deviceId: device.deviceId,
+        userId,
+      },
+      data: {
+        isActive: false,
+        pushToken: null,
+        pushTokenHash: null,
+      },
+    });
+  });
+
+  it('keeps device deactivation idempotent when no owned device is found', async () => {
+    updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      service.deactivateOwnedDevice(userId, device.deviceId),
+    ).resolves.toBe(false);
   });
 
   it('upserts a device by user and installation without exposing the push token', async () => {

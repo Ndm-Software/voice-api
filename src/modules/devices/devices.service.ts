@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto';
 
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -44,6 +48,47 @@ export class DevicesService {
       ],
       select: deviceResponseSelect,
     });
+  }
+
+  async requireActiveOwnedDevice(
+    userId: number,
+    deviceId: number,
+  ): Promise<{ deviceId: number }> {
+    const device = await this.prisma.device.findFirst({
+      where: {
+        deviceId,
+        userId,
+        isActive: true,
+      },
+      select: {
+        deviceId: true,
+      },
+    });
+
+    if (!device) {
+      throw new NotFoundException('Aktif cihaz bulunamadı.');
+    }
+
+    return device;
+  }
+
+  async deactivateOwnedDevice(
+    userId: number,
+    deviceId: number,
+  ): Promise<boolean> {
+    const result = await this.prisma.device.updateMany({
+      where: {
+        deviceId,
+        userId,
+      },
+      data: {
+        isActive: false,
+        pushToken: null,
+        pushTokenHash: null,
+      },
+    });
+
+    return result.count > 0;
   }
 
   async registerOrUpdate(userId: number, dto: RegisterDeviceDto) {
