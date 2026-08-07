@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { SaveUserSettingsDto } from './dto/save-user-settings.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 import { UserSettingsService } from './user-settings.service';
