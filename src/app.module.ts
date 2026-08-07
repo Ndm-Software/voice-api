@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { VoiceCallSettingsModule } from './modules/voice-call-settings/voice-call-settings.module';
 import { LanguagesModule } from './modules/languages/languages.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 
@@ -17,6 +18,7 @@ import { UserSettingsModule } from './modules/user-settings/user-settings.module
     PrismaModule,
     AuthModule,
     UsersModule,
+    VoiceCallSettingsModule,
     LanguagesModule,
     UserSettingsModule,
   ],
