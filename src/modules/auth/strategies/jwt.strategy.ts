@@ -16,10 +16,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
   //usermodul gelince değişicek const user = await this.userService.findById(payload.sub) return user;
-  async validate(payload: { sub: number; email: string }) {
+  async validate(payload: { sub: number; email: string; deviceId?: number }) {
     return {
       userId: payload.sub,
       email: payload.email,
+      deviceId: payload.deviceId,
     };
   }
 }
