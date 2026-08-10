@@ -4,21 +4,22 @@ import {
   Delete,
   Get,
   Patch,
-  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Response } from 'express';
 
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
-type AuthenticatedRequest = Request & {
-  user: {
-    userId: number;
-    email: string;
-  };
-};
+const authCookieOptions = {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+} as const;
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -32,26 +33,28 @@ export class UsersController {
    * JwtStrategy tarafından req.user içine yerleştirilir.
    */
   @Get('me')
-  getMe(@Req() req: AuthenticatedRequest) {
-    return this.usersService.findById(req.user.userId);
+  getMe(@CurrentUser() user: AuthenticatedUser) {
+    return this.usersService.findById(user.userId);
   }
 
   /**
    * Giriş yapan kullanıcının profil bilgilerini günceller.
    */
   @Patch('me')
-  updateMe(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: UpdateUserDto,
-  ) {
-    return this.usersService.update(req.user.userId, dto);
+  updateMe(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(user.userId, dto);
   }
 
-  /**
-   * Giriş yapan kullanıcının hesabını siler.
-   */
   @Delete('me')
-  removeMe(@Req() req: AuthenticatedRequest) {
-    return this.usersService.remove(req.user.userId);
+  async removeMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.usersService.remove(user.userId);
+
+    response.clearCookie('accessToken', authCookieOptions);
+    response.clearCookie('refreshToken', authCookieOptions);
+
+    return result;
   }
 }

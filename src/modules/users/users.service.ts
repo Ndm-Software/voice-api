@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -112,8 +113,7 @@ export class UsersService {
       );
     }
 
-    const existingPhone =
-      await this.findByPhoneNumber(normalizedPhoneNumber);
+    const existingPhone = await this.findByPhoneNumber(normalizedPhoneNumber);
 
     if (existingPhone) {
       throw new ConflictException(
@@ -153,8 +153,7 @@ export class UsersService {
     }
 
     if (normalizedPhoneNumber) {
-      const existingPhone =
-        await this.findByPhoneNumber(normalizedPhoneNumber);
+      const existingPhone = await this.findByPhoneNumber(normalizedPhoneNumber);
 
       if (existingPhone && existingPhone.userId !== userId) {
         throw new ConflictException(
@@ -223,17 +222,23 @@ export class UsersService {
     });
   }
 
-  /**
-   * Giriş yapan kullanıcının hesabını siler.
-   */
   async remove(userId: number) {
-    await this.findById(userId);
+    try {
+      await this.prisma.user.delete({
+        where: {
+          userId,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Kullanıcı bulunamadı.');
+      }
 
-    await this.prisma.user.delete({
-      where: {
-        userId,
-      },
-    });
+      throw error;
+    }
 
     return {
       message: 'Kullanıcı hesabı başarıyla silindi.',

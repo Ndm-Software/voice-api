@@ -128,9 +128,11 @@ export type UserSettingScalarFieldEnum =
 export const DeviceScalarFieldEnum = {
   deviceId: 'deviceId',
   userId: 'userId',
+  installationId: 'installationId',
   platform: 'platform',
   deviceName: 'deviceName',
   pushToken: 'pushToken',
+  pushTokenHash: 'pushTokenHash',
   lastActive: 'lastActive',
   isActive: 'isActive',
   createdAt: 'createdAt',

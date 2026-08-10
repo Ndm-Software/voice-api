@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { DevicesModule } from './modules/devices/devices.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { VoiceCallSettingsModule } from './modules/voice-call-settings/voice-call-settings.module';
@@ -18,6 +19,7 @@ import { UserSettingsModule } from './modules/user-settings/user-settings.module
     PrismaModule,
     AuthModule,
     UsersModule,
+    DevicesModule,
     VoiceCallSettingsModule,
     LanguagesModule,
     UserSettingsModule,
