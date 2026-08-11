@@ -57,7 +57,7 @@ model UserSetting {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user     User     @relation(fields: [userId], references: [userId])
+  user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
   language Language @relation(fields: [languageId], references: [languageId])
 
   @@map("user_settings")
@@ -120,7 +120,7 @@ model OtpVerification {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [userId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("otp_verifications")
 }
@@ -156,7 +156,7 @@ model Reminder {
 
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [userId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   parentReminder Reminder? @relation("ReminderException", fields: [parentReminderId], references: [reminderId])
 
