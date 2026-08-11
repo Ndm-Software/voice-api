@@ -4,7 +4,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
@@ -68,16 +67,20 @@ export class AuthService {
     // Refresh token'ın sadece HASH'ini DB'ye kaydet
     await this.saveRefreshToken(device.deviceId, tokens.refreshToken);
 
-    return tokens;
+    return {
+      user: {
+        userId: user.userId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+      },
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
-  async refresh(req: Request, res: Response) {
-    const refreshToken = req.cookies?.refreshToken;
-
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found.');
-    }
-
+  async refresh(refreshToken: string) {
     let payload: {
       sub: number;
       email: string;
@@ -134,52 +137,23 @@ export class AuthService {
     // Yeni refresh tokenı DB'ye kaydet
     await this.saveRefreshToken(storedToken.deviceId, tokens.refreshToken);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     return {
-      message: 'Token refreshed successfully.',
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
-  async logout(req: Request, res: Response) {
-    const refreshToken = req.cookies?.refreshToken;
+  async logout(refreshToken: string) {
+    const tokenHash = hashToken(refreshToken);
 
-    if (refreshToken) {
-      const tokenHash = hashToken(refreshToken);
-
-      await this.prisma.refreshToken.updateMany({
-        where: {
-          tokenHash,
-          revokedAt: null,
-        },
-        data: {
-          revokedAt: new Date(),
-        },
-      });
-    }
-
-    res.clearCookie('accessToken', {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-    });
-
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        tokenHash,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
     });
 
     return {
