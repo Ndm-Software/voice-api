@@ -3,6 +3,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -10,9 +11,10 @@ import {
 
 export class UpdateUserSettingsDto {
   @IsOptional()
-  @IsInt({ message: 'Dil ID değeri tam sayı olmalıdır.' })
-  @Min(1, { message: 'Geçerli bir dil seçilmelidir.' })
-  languageId?: number;
+  @IsUUID(undefined, {
+    message: 'Dil ID değeri geçerli bir UUID olmalıdır.',
+  })
+  languageId?: string;
 
   @IsOptional()
   @IsString()

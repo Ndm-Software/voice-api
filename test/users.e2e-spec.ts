@@ -13,13 +13,13 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
 
-import { JwtStrategy } from '../src/auth/strategies/jwt.strategy';
+import { JwtStrategy } from '../src/modules/auth/strategies/jwt.strategy';
 import { createCorsOptions } from '../src/common/config/cors.config';
 import { UsersController } from '../src/modules/users/users.controller';
 import { UsersService } from '../src/modules/users/users.service';
 
 describe('UsersController account deletion (e2e)', () => {
-  const userId = 42;
+  const userId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   const email = 'user@example.com';
   const accessSecret = randomBytes(32).toString('hex');
 
@@ -29,7 +29,7 @@ describe('UsersController account deletion (e2e)', () => {
   let remove: jest.MockedFunction<UsersService['remove']>;
 
   beforeAll(async () => {
-    remove = jest.fn<UsersService['remove']>();
+    remove = jest.fn() as jest.MockedFunction<UsersService['remove']>;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
@@ -122,7 +122,7 @@ describe('UsersController account deletion (e2e)', () => {
     const response = await request(server)
       .delete('/api/users/me')
       .set('Cookie', `accessToken=${accessToken}`)
-      .send({ userId: 84 })
+      .send({ userId: 'ffffffff-ffff-4fff-8fff-ffffffffffff' })
       .expect(200);
 
     expect(response.body).toEqual({

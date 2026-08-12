@@ -50,7 +50,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // WEB + MOBILE
     return {
       message: 'Login successful.',
       accessToken: tokens.accessToken,
@@ -71,7 +70,7 @@ export class AuthController {
       ? authorization.substring(7)
       : undefined;
 
-    const refreshToken =
+    const refreshToken = 
       cookieRefreshToken || bodyRefreshToken || bearerRefreshToken;
 
     if (!refreshToken) {
@@ -95,7 +94,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // WEB + MOBILE
     return {
       message: 'Token refreshed successfully.',
       accessToken: tokens.accessToken,

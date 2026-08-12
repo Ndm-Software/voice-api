@@ -27,25 +27,19 @@ export type AggregateUserSetting = {
 }
 
 export type UserSettingAvgAggregateOutputType = {
-  settingId: number | null
-  userId: number | null
-  languageId: number | null
   defaultPushBefore: number | null
   defaultCallBefore: number | null
 }
 
 export type UserSettingSumAggregateOutputType = {
-  settingId: number | null
-  userId: number | null
-  languageId: number | null
   defaultPushBefore: number | null
   defaultCallBefore: number | null
 }
 
 export type UserSettingMinAggregateOutputType = {
-  settingId: number | null
-  userId: number | null
-  languageId: number | null
+  settingId: string | null
+  userId: string | null
+  languageId: string | null
   timezone: string | null
   province: string | null
   notificationsEnabled: boolean | null
@@ -57,9 +51,9 @@ export type UserSettingMinAggregateOutputType = {
 }
 
 export type UserSettingMaxAggregateOutputType = {
-  settingId: number | null
-  userId: number | null
-  languageId: number | null
+  settingId: string | null
+  userId: string | null
+  languageId: string | null
   timezone: string | null
   province: string | null
   notificationsEnabled: boolean | null
@@ -87,17 +81,11 @@ export type UserSettingCountAggregateOutputType = {
 
 
 export type UserSettingAvgAggregateInputType = {
-  settingId?: true
-  userId?: true
-  languageId?: true
   defaultPushBefore?: true
   defaultCallBefore?: true
 }
 
 export type UserSettingSumAggregateInputType = {
-  settingId?: true
-  userId?: true
-  languageId?: true
   defaultPushBefore?: true
   defaultCallBefore?: true
 }
@@ -232,9 +220,9 @@ export type UserSettingGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 export type UserSettingGroupByOutputType = {
-  settingId: number
-  userId: number
-  languageId: number
+  settingId: string
+  userId: string
+  languageId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -269,9 +257,9 @@ export type UserSettingWhereInput = {
   AND?: Prisma.UserSettingWhereInput | Prisma.UserSettingWhereInput[]
   OR?: Prisma.UserSettingWhereInput[]
   NOT?: Prisma.UserSettingWhereInput | Prisma.UserSettingWhereInput[]
-  settingId?: Prisma.IntFilter<"UserSetting"> | number
-  userId?: Prisma.IntFilter<"UserSetting"> | number
-  languageId?: Prisma.IntFilter<"UserSetting"> | number
+  settingId?: Prisma.UuidFilter<"UserSetting"> | string
+  userId?: Prisma.UuidFilter<"UserSetting"> | string
+  languageId?: Prisma.UuidFilter<"UserSetting"> | string
   timezone?: Prisma.StringFilter<"UserSetting"> | string
   province?: Prisma.StringFilter<"UserSetting"> | string
   notificationsEnabled?: Prisma.BoolFilter<"UserSetting"> | boolean
@@ -301,12 +289,12 @@ export type UserSettingOrderByWithRelationInput = {
 }
 
 export type UserSettingWhereUniqueInput = Prisma.AtLeast<{
-  settingId?: number
-  userId?: number
+  settingId?: string
+  userId?: string
   AND?: Prisma.UserSettingWhereInput | Prisma.UserSettingWhereInput[]
   OR?: Prisma.UserSettingWhereInput[]
   NOT?: Prisma.UserSettingWhereInput | Prisma.UserSettingWhereInput[]
-  languageId?: Prisma.IntFilter<"UserSetting"> | number
+  languageId?: Prisma.UuidFilter<"UserSetting"> | string
   timezone?: Prisma.StringFilter<"UserSetting"> | string
   province?: Prisma.StringFilter<"UserSetting"> | string
   notificationsEnabled?: Prisma.BoolFilter<"UserSetting"> | boolean
@@ -342,9 +330,9 @@ export type UserSettingScalarWhereWithAggregatesInput = {
   AND?: Prisma.UserSettingScalarWhereWithAggregatesInput | Prisma.UserSettingScalarWhereWithAggregatesInput[]
   OR?: Prisma.UserSettingScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserSettingScalarWhereWithAggregatesInput | Prisma.UserSettingScalarWhereWithAggregatesInput[]
-  settingId?: Prisma.IntWithAggregatesFilter<"UserSetting"> | number
-  userId?: Prisma.IntWithAggregatesFilter<"UserSetting"> | number
-  languageId?: Prisma.IntWithAggregatesFilter<"UserSetting"> | number
+  settingId?: Prisma.UuidWithAggregatesFilter<"UserSetting"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"UserSetting"> | string
+  languageId?: Prisma.UuidWithAggregatesFilter<"UserSetting"> | string
   timezone?: Prisma.StringWithAggregatesFilter<"UserSetting"> | string
   province?: Prisma.StringWithAggregatesFilter<"UserSetting"> | string
   notificationsEnabled?: Prisma.BoolWithAggregatesFilter<"UserSetting"> | boolean
@@ -356,6 +344,7 @@ export type UserSettingScalarWhereWithAggregatesInput = {
 }
 
 export type UserSettingCreateInput = {
+  settingId?: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -369,9 +358,9 @@ export type UserSettingCreateInput = {
 }
 
 export type UserSettingUncheckedCreateInput = {
-  settingId?: number
-  userId: number
-  languageId: number
+  settingId?: string
+  userId: string
+  languageId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -383,6 +372,7 @@ export type UserSettingUncheckedCreateInput = {
 }
 
 export type UserSettingUpdateInput = {
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -396,9 +386,9 @@ export type UserSettingUpdateInput = {
 }
 
 export type UserSettingUncheckedUpdateInput = {
-  settingId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -410,9 +400,9 @@ export type UserSettingUncheckedUpdateInput = {
 }
 
 export type UserSettingCreateManyInput = {
-  settingId?: number
-  userId: number
-  languageId: number
+  settingId?: string
+  userId: string
+  languageId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -424,6 +414,7 @@ export type UserSettingCreateManyInput = {
 }
 
 export type UserSettingUpdateManyMutationInput = {
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -435,9 +426,9 @@ export type UserSettingUpdateManyMutationInput = {
 }
 
 export type UserSettingUncheckedUpdateManyInput = {
-  settingId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -478,9 +469,6 @@ export type UserSettingCountOrderByAggregateInput = {
 }
 
 export type UserSettingAvgOrderByAggregateInput = {
-  settingId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-  languageId?: Prisma.SortOrder
   defaultPushBefore?: Prisma.SortOrder
   defaultCallBefore?: Prisma.SortOrder
 }
@@ -514,9 +502,6 @@ export type UserSettingMinOrderByAggregateInput = {
 }
 
 export type UserSettingSumOrderByAggregateInput = {
-  settingId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-  languageId?: Prisma.SortOrder
   defaultPushBefore?: Prisma.SortOrder
   defaultCallBefore?: Prisma.SortOrder
 }
@@ -595,7 +580,16 @@ export type UserSettingUncheckedUpdateOneWithoutUserNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserSettingUpdateToOneWithWhereWithoutUserInput, Prisma.UserSettingUpdateWithoutUserInput>, Prisma.UserSettingUncheckedUpdateWithoutUserInput>
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type UserSettingCreateWithoutLanguageInput = {
+  settingId?: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -608,8 +602,8 @@ export type UserSettingCreateWithoutLanguageInput = {
 }
 
 export type UserSettingUncheckedCreateWithoutLanguageInput = {
-  settingId?: number
-  userId: number
+  settingId?: string
+  userId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -650,9 +644,9 @@ export type UserSettingScalarWhereInput = {
   AND?: Prisma.UserSettingScalarWhereInput | Prisma.UserSettingScalarWhereInput[]
   OR?: Prisma.UserSettingScalarWhereInput[]
   NOT?: Prisma.UserSettingScalarWhereInput | Prisma.UserSettingScalarWhereInput[]
-  settingId?: Prisma.IntFilter<"UserSetting"> | number
-  userId?: Prisma.IntFilter<"UserSetting"> | number
-  languageId?: Prisma.IntFilter<"UserSetting"> | number
+  settingId?: Prisma.UuidFilter<"UserSetting"> | string
+  userId?: Prisma.UuidFilter<"UserSetting"> | string
+  languageId?: Prisma.UuidFilter<"UserSetting"> | string
   timezone?: Prisma.StringFilter<"UserSetting"> | string
   province?: Prisma.StringFilter<"UserSetting"> | string
   notificationsEnabled?: Prisma.BoolFilter<"UserSetting"> | boolean
@@ -664,6 +658,7 @@ export type UserSettingScalarWhereInput = {
 }
 
 export type UserSettingCreateWithoutUserInput = {
+  settingId?: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -676,8 +671,8 @@ export type UserSettingCreateWithoutUserInput = {
 }
 
 export type UserSettingUncheckedCreateWithoutUserInput = {
-  settingId?: number
-  languageId: number
+  settingId?: string
+  languageId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -705,6 +700,7 @@ export type UserSettingUpdateToOneWithWhereWithoutUserInput = {
 }
 
 export type UserSettingUpdateWithoutUserInput = {
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -717,8 +713,8 @@ export type UserSettingUpdateWithoutUserInput = {
 }
 
 export type UserSettingUncheckedUpdateWithoutUserInput = {
-  settingId?: Prisma.IntFieldUpdateOperationsInput | number
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -730,8 +726,8 @@ export type UserSettingUncheckedUpdateWithoutUserInput = {
 }
 
 export type UserSettingCreateManyLanguageInput = {
-  settingId?: number
-  userId: number
+  settingId?: string
+  userId: string
   timezone: string
   province: string
   notificationsEnabled: boolean
@@ -743,6 +739,7 @@ export type UserSettingCreateManyLanguageInput = {
 }
 
 export type UserSettingUpdateWithoutLanguageInput = {
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -755,8 +752,8 @@ export type UserSettingUpdateWithoutLanguageInput = {
 }
 
 export type UserSettingUncheckedUpdateWithoutLanguageInput = {
-  settingId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -768,8 +765,8 @@ export type UserSettingUncheckedUpdateWithoutLanguageInput = {
 }
 
 export type UserSettingUncheckedUpdateManyWithoutLanguageInput = {
-  settingId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  settingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   province?: Prisma.StringFieldUpdateOperationsInput | string
   notificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -865,9 +862,9 @@ export type $UserSettingPayload<ExtArgs extends runtime.Types.Extensions.Interna
     language: Prisma.$LanguagePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    settingId: number
-    userId: number
-    languageId: number
+    settingId: string
+    userId: string
+    languageId: string
     timezone: string
     province: string
     notificationsEnabled: boolean
@@ -1301,9 +1298,9 @@ export interface Prisma__UserSettingClient<T, Null = never, ExtArgs extends runt
  * Fields of the UserSetting model
  */
 export interface UserSettingFieldRefs {
-  readonly settingId: Prisma.FieldRef<"UserSetting", 'Int'>
-  readonly userId: Prisma.FieldRef<"UserSetting", 'Int'>
-  readonly languageId: Prisma.FieldRef<"UserSetting", 'Int'>
+  readonly settingId: Prisma.FieldRef<"UserSetting", 'String'>
+  readonly userId: Prisma.FieldRef<"UserSetting", 'String'>
+  readonly languageId: Prisma.FieldRef<"UserSetting", 'String'>
   readonly timezone: Prisma.FieldRef<"UserSetting", 'String'>
   readonly province: Prisma.FieldRef<"UserSetting", 'String'>
   readonly notificationsEnabled: Prisma.FieldRef<"UserSetting", 'Boolean'>

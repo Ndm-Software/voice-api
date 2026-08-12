@@ -27,20 +27,16 @@ export type AggregatePushNotificationSetting = {
 }
 
 export type PushNotificationSettingAvgAggregateOutputType = {
-  pushId: number | null
-  reminderId: number | null
   minutesBefore: number | null
 }
 
 export type PushNotificationSettingSumAggregateOutputType = {
-  pushId: number | null
-  reminderId: number | null
   minutesBefore: number | null
 }
 
 export type PushNotificationSettingMinAggregateOutputType = {
-  pushId: number | null
-  reminderId: number | null
+  pushId: string | null
+  reminderId: string | null
   minutesBefore: number | null
   jobId: string | null
   enabled: boolean | null
@@ -49,8 +45,8 @@ export type PushNotificationSettingMinAggregateOutputType = {
 }
 
 export type PushNotificationSettingMaxAggregateOutputType = {
-  pushId: number | null
-  reminderId: number | null
+  pushId: string | null
+  reminderId: string | null
   minutesBefore: number | null
   jobId: string | null
   enabled: boolean | null
@@ -71,14 +67,10 @@ export type PushNotificationSettingCountAggregateOutputType = {
 
 
 export type PushNotificationSettingAvgAggregateInputType = {
-  pushId?: true
-  reminderId?: true
   minutesBefore?: true
 }
 
 export type PushNotificationSettingSumAggregateInputType = {
-  pushId?: true
-  reminderId?: true
   minutesBefore?: true
 }
 
@@ -200,8 +192,8 @@ export type PushNotificationSettingGroupByArgs<ExtArgs extends runtime.Types.Ext
 }
 
 export type PushNotificationSettingGroupByOutputType = {
-  pushId: number
-  reminderId: number
+  pushId: string
+  reminderId: string
   minutesBefore: number
   jobId: string
   enabled: boolean
@@ -233,8 +225,8 @@ export type PushNotificationSettingWhereInput = {
   AND?: Prisma.PushNotificationSettingWhereInput | Prisma.PushNotificationSettingWhereInput[]
   OR?: Prisma.PushNotificationSettingWhereInput[]
   NOT?: Prisma.PushNotificationSettingWhereInput | Prisma.PushNotificationSettingWhereInput[]
-  pushId?: Prisma.IntFilter<"PushNotificationSetting"> | number
-  reminderId?: Prisma.IntFilter<"PushNotificationSetting"> | number
+  pushId?: Prisma.UuidFilter<"PushNotificationSetting"> | string
+  reminderId?: Prisma.UuidFilter<"PushNotificationSetting"> | string
   minutesBefore?: Prisma.IntFilter<"PushNotificationSetting"> | number
   jobId?: Prisma.StringFilter<"PushNotificationSetting"> | string
   enabled?: Prisma.BoolFilter<"PushNotificationSetting"> | boolean
@@ -255,11 +247,11 @@ export type PushNotificationSettingOrderByWithRelationInput = {
 }
 
 export type PushNotificationSettingWhereUniqueInput = Prisma.AtLeast<{
-  pushId?: number
+  pushId?: string
   AND?: Prisma.PushNotificationSettingWhereInput | Prisma.PushNotificationSettingWhereInput[]
   OR?: Prisma.PushNotificationSettingWhereInput[]
   NOT?: Prisma.PushNotificationSettingWhereInput | Prisma.PushNotificationSettingWhereInput[]
-  reminderId?: Prisma.IntFilter<"PushNotificationSetting"> | number
+  reminderId?: Prisma.UuidFilter<"PushNotificationSetting"> | string
   minutesBefore?: Prisma.IntFilter<"PushNotificationSetting"> | number
   jobId?: Prisma.StringFilter<"PushNotificationSetting"> | string
   enabled?: Prisma.BoolFilter<"PushNotificationSetting"> | boolean
@@ -287,8 +279,8 @@ export type PushNotificationSettingScalarWhereWithAggregatesInput = {
   AND?: Prisma.PushNotificationSettingScalarWhereWithAggregatesInput | Prisma.PushNotificationSettingScalarWhereWithAggregatesInput[]
   OR?: Prisma.PushNotificationSettingScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PushNotificationSettingScalarWhereWithAggregatesInput | Prisma.PushNotificationSettingScalarWhereWithAggregatesInput[]
-  pushId?: Prisma.IntWithAggregatesFilter<"PushNotificationSetting"> | number
-  reminderId?: Prisma.IntWithAggregatesFilter<"PushNotificationSetting"> | number
+  pushId?: Prisma.UuidWithAggregatesFilter<"PushNotificationSetting"> | string
+  reminderId?: Prisma.UuidWithAggregatesFilter<"PushNotificationSetting"> | string
   minutesBefore?: Prisma.IntWithAggregatesFilter<"PushNotificationSetting"> | number
   jobId?: Prisma.StringWithAggregatesFilter<"PushNotificationSetting"> | string
   enabled?: Prisma.BoolWithAggregatesFilter<"PushNotificationSetting"> | boolean
@@ -297,6 +289,7 @@ export type PushNotificationSettingScalarWhereWithAggregatesInput = {
 }
 
 export type PushNotificationSettingCreateInput = {
+  pushId?: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -306,8 +299,8 @@ export type PushNotificationSettingCreateInput = {
 }
 
 export type PushNotificationSettingUncheckedCreateInput = {
-  pushId?: number
-  reminderId: number
+  pushId?: string
+  reminderId: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -316,6 +309,7 @@ export type PushNotificationSettingUncheckedCreateInput = {
 }
 
 export type PushNotificationSettingUpdateInput = {
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -325,8 +319,8 @@ export type PushNotificationSettingUpdateInput = {
 }
 
 export type PushNotificationSettingUncheckedUpdateInput = {
-  pushId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -335,8 +329,8 @@ export type PushNotificationSettingUncheckedUpdateInput = {
 }
 
 export type PushNotificationSettingCreateManyInput = {
-  pushId?: number
-  reminderId: number
+  pushId?: string
+  reminderId: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -345,6 +339,7 @@ export type PushNotificationSettingCreateManyInput = {
 }
 
 export type PushNotificationSettingUpdateManyMutationInput = {
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -353,8 +348,8 @@ export type PushNotificationSettingUpdateManyMutationInput = {
 }
 
 export type PushNotificationSettingUncheckedUpdateManyInput = {
-  pushId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -383,8 +378,6 @@ export type PushNotificationSettingCountOrderByAggregateInput = {
 }
 
 export type PushNotificationSettingAvgOrderByAggregateInput = {
-  pushId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   minutesBefore?: Prisma.SortOrder
 }
 
@@ -409,8 +402,6 @@ export type PushNotificationSettingMinOrderByAggregateInput = {
 }
 
 export type PushNotificationSettingSumOrderByAggregateInput = {
-  pushId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   minutesBefore?: Prisma.SortOrder
 }
 
@@ -457,6 +448,7 @@ export type PushNotificationSettingUncheckedUpdateManyWithoutReminderNestedInput
 }
 
 export type PushNotificationSettingCreateWithoutReminderInput = {
+  pushId?: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -465,7 +457,7 @@ export type PushNotificationSettingCreateWithoutReminderInput = {
 }
 
 export type PushNotificationSettingUncheckedCreateWithoutReminderInput = {
-  pushId?: number
+  pushId?: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -503,8 +495,8 @@ export type PushNotificationSettingScalarWhereInput = {
   AND?: Prisma.PushNotificationSettingScalarWhereInput | Prisma.PushNotificationSettingScalarWhereInput[]
   OR?: Prisma.PushNotificationSettingScalarWhereInput[]
   NOT?: Prisma.PushNotificationSettingScalarWhereInput | Prisma.PushNotificationSettingScalarWhereInput[]
-  pushId?: Prisma.IntFilter<"PushNotificationSetting"> | number
-  reminderId?: Prisma.IntFilter<"PushNotificationSetting"> | number
+  pushId?: Prisma.UuidFilter<"PushNotificationSetting"> | string
+  reminderId?: Prisma.UuidFilter<"PushNotificationSetting"> | string
   minutesBefore?: Prisma.IntFilter<"PushNotificationSetting"> | number
   jobId?: Prisma.StringFilter<"PushNotificationSetting"> | string
   enabled?: Prisma.BoolFilter<"PushNotificationSetting"> | boolean
@@ -513,7 +505,7 @@ export type PushNotificationSettingScalarWhereInput = {
 }
 
 export type PushNotificationSettingCreateManyReminderInput = {
-  pushId?: number
+  pushId?: string
   minutesBefore: number
   jobId: string
   enabled?: boolean
@@ -522,6 +514,7 @@ export type PushNotificationSettingCreateManyReminderInput = {
 }
 
 export type PushNotificationSettingUpdateWithoutReminderInput = {
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -530,7 +523,7 @@ export type PushNotificationSettingUpdateWithoutReminderInput = {
 }
 
 export type PushNotificationSettingUncheckedUpdateWithoutReminderInput = {
-  pushId?: Prisma.IntFieldUpdateOperationsInput | number
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -539,7 +532,7 @@ export type PushNotificationSettingUncheckedUpdateWithoutReminderInput = {
 }
 
 export type PushNotificationSettingUncheckedUpdateManyWithoutReminderInput = {
-  pushId?: Prisma.IntFieldUpdateOperationsInput | number
+  pushId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -609,8 +602,8 @@ export type $PushNotificationSettingPayload<ExtArgs extends runtime.Types.Extens
     reminder: Prisma.$ReminderPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    pushId: number
-    reminderId: number
+    pushId: string
+    reminderId: string
     minutesBefore: number
     jobId: string
     enabled: boolean
@@ -1040,8 +1033,8 @@ export interface Prisma__PushNotificationSettingClient<T, Null = never, ExtArgs 
  * Fields of the PushNotificationSetting model
  */
 export interface PushNotificationSettingFieldRefs {
-  readonly pushId: Prisma.FieldRef<"PushNotificationSetting", 'Int'>
-  readonly reminderId: Prisma.FieldRef<"PushNotificationSetting", 'Int'>
+  readonly pushId: Prisma.FieldRef<"PushNotificationSetting", 'String'>
+  readonly reminderId: Prisma.FieldRef<"PushNotificationSetting", 'String'>
   readonly minutesBefore: Prisma.FieldRef<"PushNotificationSetting", 'Int'>
   readonly jobId: Prisma.FieldRef<"PushNotificationSetting", 'String'>
   readonly enabled: Prisma.FieldRef<"PushNotificationSetting", 'Boolean'>

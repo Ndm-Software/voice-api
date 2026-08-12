@@ -47,7 +47,7 @@ export class UsersService {
    * Profil endpointleri bu metodu kullanır.
    * passwordHash response içerisinde dönmez.
    */
-  async findById(userId: number) {
+  async findById(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: {
         userId,
@@ -136,7 +136,7 @@ export class UsersService {
   /**
    * Giriş yapan kullanıcının profil bilgilerini günceller.
    */
-  async update(userId: number, dto: UpdateUserDto) {
+  async update(userId: string, dto: UpdateUserDto) {
     await this.findById(userId);
 
     const normalizedEmail = dto.email?.trim().toLowerCase();
@@ -222,7 +222,7 @@ export class UsersService {
     });
   }
 
-  async remove(userId: number) {
+  async remove(userId: string) {
     try {
       await this.prisma.user.delete({
         where: {

@@ -14,7 +14,7 @@ import { RegisterDeviceDto } from './dto/register-device.dto';
 
 describe('DevicesController', () => {
   const device = {
-    deviceId: 7,
+    deviceId: '11111111-1111-4111-8111-111111111111',
     platform: PlatformType.WINDOWS,
     deviceName: 'Office Desktop',
     lastActive: new Date('2026-08-07T09:00:00.000Z'),
@@ -27,8 +27,8 @@ describe('DevicesController', () => {
   let controller: DevicesController;
 
   beforeEach(() => {
-    registerOrUpdate = jest.fn<DevicesService['registerOrUpdate']>();
-    findAllForUser = jest.fn<DevicesService['findAllForUser']>();
+    registerOrUpdate = jest.fn() as jest.MockedFunction<DevicesService['registerOrUpdate']>;
+    findAllForUser = jest.fn() as jest.MockedFunction<DevicesService['findAllForUser']>;
     controller = new DevicesController({
       findAllForUser,
       registerOrUpdate,
@@ -37,7 +37,7 @@ describe('DevicesController', () => {
 
   it('lists only through the authenticated user id', async () => {
     const user: AuthenticatedUser = {
-      userId: 42,
+      userId: '22222222-2222-4222-8222-222222222222',
       email: 'user@example.com',
     };
     findAllForUser.mockResolvedValue([device]);
@@ -48,7 +48,7 @@ describe('DevicesController', () => {
 
   it('passes the authenticated user id and validated DTO to the service', async () => {
     const user: AuthenticatedUser = {
-      userId: 42,
+      userId: '22222222-2222-4222-8222-222222222222',
       email: 'user@example.com',
     };
     const dto: RegisterDeviceDto = {
