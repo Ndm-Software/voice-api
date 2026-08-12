@@ -33,7 +33,7 @@ const hashPushToken = (pushToken: string): string =>
 export class DevicesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllForUser(userId: number) {
+  findAllForUser(userId: string) {
     return this.prisma.device.findMany({
       where: {
         userId,
@@ -51,9 +51,9 @@ export class DevicesService {
   }
 
   async requireActiveOwnedDevice(
-    userId: number,
-    deviceId: number,
-  ): Promise<{ deviceId: number }> {
+    userId: string,
+    deviceId: string,
+  ): Promise<{ deviceId: string }> {
     const device = await this.prisma.device.findFirst({
       where: {
         deviceId,
@@ -73,8 +73,8 @@ export class DevicesService {
   }
 
   async deactivateOwnedDevice(
-    userId: number,
-    deviceId: number,
+    userId: string,
+    deviceId: string,
   ): Promise<boolean> {
     const result = await this.prisma.device.updateMany({
       where: {
@@ -91,7 +91,7 @@ export class DevicesService {
     return result.count > 0;
   }
 
-  async registerOrUpdate(userId: number, dto: RegisterDeviceDto) {
+  async registerOrUpdate(userId: string, dto: RegisterDeviceDto) {
     let attempt = 0;
 
     while (true) {
@@ -127,7 +127,7 @@ export class DevicesService {
 
   private async registerOrUpdateInTransaction(
     transaction: Prisma.TransactionClient,
-    userId: number,
+    userId: string,
     dto: RegisterDeviceDto,
   ) {
     const activeDeviceForAnotherUser = await transaction.device.findFirst({
@@ -194,7 +194,7 @@ export class DevicesService {
 
   private async releasePushTokenFromPreviousDevice(
     transaction: Prisma.TransactionClient,
-    userId: number,
+    userId: string,
     dto: RegisterDeviceDto,
   ) {
     if (dto.pushToken === undefined || dto.pushToken === null) {

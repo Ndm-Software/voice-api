@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from './users.service';
 
 describe('UsersService account deletion', () => {
-  const userId = 42;
+  const userId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
   let deleteUser: jest.Mock;
   let service: UsersService;

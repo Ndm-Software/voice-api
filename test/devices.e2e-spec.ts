@@ -15,11 +15,11 @@ import { DevicesController } from '../src/modules/devices/devices.controller';
 import { DevicesService } from '../src/modules/devices/devices.service';
 
 describe('DevicesController (e2e)', () => {
-  const userId = 42;
+  const userId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
   const email = 'user@example.com';
   const accessSecret = randomBytes(32).toString('hex');
   const device = {
-    deviceId: 7,
+    deviceId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     platform: PlatformType.WINDOWS,
     deviceName: 'Office Desktop',
     lastActive: new Date('2026-08-07T09:00:00.000Z'),
@@ -34,8 +34,8 @@ describe('DevicesController (e2e)', () => {
   let registerOrUpdate: jest.MockedFunction<DevicesService['registerOrUpdate']>;
 
   beforeAll(async () => {
-    findAllForUser = jest.fn<DevicesService['findAllForUser']>();
-    registerOrUpdate = jest.fn<DevicesService['registerOrUpdate']>();
+    findAllForUser = jest.fn() as jest.MockedFunction<DevicesService['findAllForUser']>;
+    registerOrUpdate = jest.fn() as jest.MockedFunction<DevicesService['registerOrUpdate']>;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
@@ -130,7 +130,7 @@ describe('DevicesController (e2e)', () => {
         installationId: '550e8400-e29b-41d4-a716-446655440000',
         platform: 'WINDOWS',
         deviceName: 'Office Desktop',
-        userId: 84,
+        userId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
       })
       .expect(400);
 

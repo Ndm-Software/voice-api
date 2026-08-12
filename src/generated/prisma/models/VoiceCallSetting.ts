@@ -27,22 +27,18 @@ export type AggregateVoiceCallSetting = {
 }
 
 export type VoiceCallSettingAvgAggregateOutputType = {
-  callId: number | null
-  reminderId: number | null
   minutesBefore: number | null
   retryCount: number | null
 }
 
 export type VoiceCallSettingSumAggregateOutputType = {
-  callId: number | null
-  reminderId: number | null
   minutesBefore: number | null
   retryCount: number | null
 }
 
 export type VoiceCallSettingMinAggregateOutputType = {
-  callId: number | null
-  reminderId: number | null
+  callId: string | null
+  reminderId: string | null
   minutesBefore: number | null
   retryCount: number | null
   jobId: string | null
@@ -52,8 +48,8 @@ export type VoiceCallSettingMinAggregateOutputType = {
 }
 
 export type VoiceCallSettingMaxAggregateOutputType = {
-  callId: number | null
-  reminderId: number | null
+  callId: string | null
+  reminderId: string | null
   minutesBefore: number | null
   retryCount: number | null
   jobId: string | null
@@ -76,15 +72,11 @@ export type VoiceCallSettingCountAggregateOutputType = {
 
 
 export type VoiceCallSettingAvgAggregateInputType = {
-  callId?: true
-  reminderId?: true
   minutesBefore?: true
   retryCount?: true
 }
 
 export type VoiceCallSettingSumAggregateInputType = {
-  callId?: true
-  reminderId?: true
   minutesBefore?: true
   retryCount?: true
 }
@@ -210,8 +202,8 @@ export type VoiceCallSettingGroupByArgs<ExtArgs extends runtime.Types.Extensions
 }
 
 export type VoiceCallSettingGroupByOutputType = {
-  callId: number
-  reminderId: number
+  callId: string
+  reminderId: string
   minutesBefore: number
   retryCount: number
   jobId: string | null
@@ -244,8 +236,8 @@ export type VoiceCallSettingWhereInput = {
   AND?: Prisma.VoiceCallSettingWhereInput | Prisma.VoiceCallSettingWhereInput[]
   OR?: Prisma.VoiceCallSettingWhereInput[]
   NOT?: Prisma.VoiceCallSettingWhereInput | Prisma.VoiceCallSettingWhereInput[]
-  callId?: Prisma.IntFilter<"VoiceCallSetting"> | number
-  reminderId?: Prisma.IntFilter<"VoiceCallSetting"> | number
+  callId?: Prisma.UuidFilter<"VoiceCallSetting"> | string
+  reminderId?: Prisma.UuidFilter<"VoiceCallSetting"> | string
   minutesBefore?: Prisma.IntFilter<"VoiceCallSetting"> | number
   retryCount?: Prisma.IntFilter<"VoiceCallSetting"> | number
   jobId?: Prisma.StringNullableFilter<"VoiceCallSetting"> | string | null
@@ -268,11 +260,11 @@ export type VoiceCallSettingOrderByWithRelationInput = {
 }
 
 export type VoiceCallSettingWhereUniqueInput = Prisma.AtLeast<{
-  callId?: number
+  callId?: string
   AND?: Prisma.VoiceCallSettingWhereInput | Prisma.VoiceCallSettingWhereInput[]
   OR?: Prisma.VoiceCallSettingWhereInput[]
   NOT?: Prisma.VoiceCallSettingWhereInput | Prisma.VoiceCallSettingWhereInput[]
-  reminderId?: Prisma.IntFilter<"VoiceCallSetting"> | number
+  reminderId?: Prisma.UuidFilter<"VoiceCallSetting"> | string
   minutesBefore?: Prisma.IntFilter<"VoiceCallSetting"> | number
   retryCount?: Prisma.IntFilter<"VoiceCallSetting"> | number
   jobId?: Prisma.StringNullableFilter<"VoiceCallSetting"> | string | null
@@ -302,8 +294,8 @@ export type VoiceCallSettingScalarWhereWithAggregatesInput = {
   AND?: Prisma.VoiceCallSettingScalarWhereWithAggregatesInput | Prisma.VoiceCallSettingScalarWhereWithAggregatesInput[]
   OR?: Prisma.VoiceCallSettingScalarWhereWithAggregatesInput[]
   NOT?: Prisma.VoiceCallSettingScalarWhereWithAggregatesInput | Prisma.VoiceCallSettingScalarWhereWithAggregatesInput[]
-  callId?: Prisma.IntWithAggregatesFilter<"VoiceCallSetting"> | number
-  reminderId?: Prisma.IntWithAggregatesFilter<"VoiceCallSetting"> | number
+  callId?: Prisma.UuidWithAggregatesFilter<"VoiceCallSetting"> | string
+  reminderId?: Prisma.UuidWithAggregatesFilter<"VoiceCallSetting"> | string
   minutesBefore?: Prisma.IntWithAggregatesFilter<"VoiceCallSetting"> | number
   retryCount?: Prisma.IntWithAggregatesFilter<"VoiceCallSetting"> | number
   jobId?: Prisma.StringNullableWithAggregatesFilter<"VoiceCallSetting"> | string | null
@@ -313,6 +305,7 @@ export type VoiceCallSettingScalarWhereWithAggregatesInput = {
 }
 
 export type VoiceCallSettingCreateInput = {
+  callId?: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -323,8 +316,8 @@ export type VoiceCallSettingCreateInput = {
 }
 
 export type VoiceCallSettingUncheckedCreateInput = {
-  callId?: number
-  reminderId: number
+  callId?: string
+  reminderId: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -334,6 +327,7 @@ export type VoiceCallSettingUncheckedCreateInput = {
 }
 
 export type VoiceCallSettingUpdateInput = {
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -344,8 +338,8 @@ export type VoiceCallSettingUpdateInput = {
 }
 
 export type VoiceCallSettingUncheckedUpdateInput = {
-  callId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -355,8 +349,8 @@ export type VoiceCallSettingUncheckedUpdateInput = {
 }
 
 export type VoiceCallSettingCreateManyInput = {
-  callId?: number
-  reminderId: number
+  callId?: string
+  reminderId: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -366,6 +360,7 @@ export type VoiceCallSettingCreateManyInput = {
 }
 
 export type VoiceCallSettingUpdateManyMutationInput = {
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -375,8 +370,8 @@ export type VoiceCallSettingUpdateManyMutationInput = {
 }
 
 export type VoiceCallSettingUncheckedUpdateManyInput = {
-  callId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -407,8 +402,6 @@ export type VoiceCallSettingCountOrderByAggregateInput = {
 }
 
 export type VoiceCallSettingAvgOrderByAggregateInput = {
-  callId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   minutesBefore?: Prisma.SortOrder
   retryCount?: Prisma.SortOrder
 }
@@ -436,8 +429,6 @@ export type VoiceCallSettingMinOrderByAggregateInput = {
 }
 
 export type VoiceCallSettingSumOrderByAggregateInput = {
-  callId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   minutesBefore?: Prisma.SortOrder
   retryCount?: Prisma.SortOrder
 }
@@ -485,6 +476,7 @@ export type VoiceCallSettingUncheckedUpdateManyWithoutReminderNestedInput = {
 }
 
 export type VoiceCallSettingCreateWithoutReminderInput = {
+  callId?: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -494,7 +486,7 @@ export type VoiceCallSettingCreateWithoutReminderInput = {
 }
 
 export type VoiceCallSettingUncheckedCreateWithoutReminderInput = {
-  callId?: number
+  callId?: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -533,8 +525,8 @@ export type VoiceCallSettingScalarWhereInput = {
   AND?: Prisma.VoiceCallSettingScalarWhereInput | Prisma.VoiceCallSettingScalarWhereInput[]
   OR?: Prisma.VoiceCallSettingScalarWhereInput[]
   NOT?: Prisma.VoiceCallSettingScalarWhereInput | Prisma.VoiceCallSettingScalarWhereInput[]
-  callId?: Prisma.IntFilter<"VoiceCallSetting"> | number
-  reminderId?: Prisma.IntFilter<"VoiceCallSetting"> | number
+  callId?: Prisma.UuidFilter<"VoiceCallSetting"> | string
+  reminderId?: Prisma.UuidFilter<"VoiceCallSetting"> | string
   minutesBefore?: Prisma.IntFilter<"VoiceCallSetting"> | number
   retryCount?: Prisma.IntFilter<"VoiceCallSetting"> | number
   jobId?: Prisma.StringNullableFilter<"VoiceCallSetting"> | string | null
@@ -544,7 +536,7 @@ export type VoiceCallSettingScalarWhereInput = {
 }
 
 export type VoiceCallSettingCreateManyReminderInput = {
-  callId?: number
+  callId?: string
   minutesBefore: number
   retryCount?: number
   jobId?: string | null
@@ -554,6 +546,7 @@ export type VoiceCallSettingCreateManyReminderInput = {
 }
 
 export type VoiceCallSettingUpdateWithoutReminderInput = {
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -563,7 +556,7 @@ export type VoiceCallSettingUpdateWithoutReminderInput = {
 }
 
 export type VoiceCallSettingUncheckedUpdateWithoutReminderInput = {
-  callId?: Prisma.IntFieldUpdateOperationsInput | number
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -573,7 +566,7 @@ export type VoiceCallSettingUncheckedUpdateWithoutReminderInput = {
 }
 
 export type VoiceCallSettingUncheckedUpdateManyWithoutReminderInput = {
-  callId?: Prisma.IntFieldUpdateOperationsInput | number
+  callId?: Prisma.StringFieldUpdateOperationsInput | string
   minutesBefore?: Prisma.IntFieldUpdateOperationsInput | number
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   jobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -648,8 +641,8 @@ export type $VoiceCallSettingPayload<ExtArgs extends runtime.Types.Extensions.In
     reminder: Prisma.$ReminderPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    callId: number
-    reminderId: number
+    callId: string
+    reminderId: string
     minutesBefore: number
     retryCount: number
     jobId: string | null
@@ -1080,8 +1073,8 @@ export interface Prisma__VoiceCallSettingClient<T, Null = never, ExtArgs extends
  * Fields of the VoiceCallSetting model
  */
 export interface VoiceCallSettingFieldRefs {
-  readonly callId: Prisma.FieldRef<"VoiceCallSetting", 'Int'>
-  readonly reminderId: Prisma.FieldRef<"VoiceCallSetting", 'Int'>
+  readonly callId: Prisma.FieldRef<"VoiceCallSetting", 'String'>
+  readonly reminderId: Prisma.FieldRef<"VoiceCallSetting", 'String'>
   readonly minutesBefore: Prisma.FieldRef<"VoiceCallSetting", 'Int'>
   readonly retryCount: Prisma.FieldRef<"VoiceCallSetting", 'Int'>
   readonly jobId: Prisma.FieldRef<"VoiceCallSetting", 'String'>

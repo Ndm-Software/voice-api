@@ -20,29 +20,19 @@ export type LanguageModel = runtime.Types.Result.DefaultSelection<Prisma.$Langua
 
 export type AggregateLanguage = {
   _count: LanguageCountAggregateOutputType | null
-  _avg: LanguageAvgAggregateOutputType | null
-  _sum: LanguageSumAggregateOutputType | null
   _min: LanguageMinAggregateOutputType | null
   _max: LanguageMaxAggregateOutputType | null
 }
 
-export type LanguageAvgAggregateOutputType = {
-  languageId: number | null
-}
-
-export type LanguageSumAggregateOutputType = {
-  languageId: number | null
-}
-
 export type LanguageMinAggregateOutputType = {
-  languageId: number | null
+  languageId: string | null
   code: string | null
   name: string | null
   voiceName: string | null
 }
 
 export type LanguageMaxAggregateOutputType = {
-  languageId: number | null
+  languageId: string | null
   code: string | null
   name: string | null
   voiceName: string | null
@@ -56,14 +46,6 @@ export type LanguageCountAggregateOutputType = {
   _all: number
 }
 
-
-export type LanguageAvgAggregateInputType = {
-  languageId?: true
-}
-
-export type LanguageSumAggregateInputType = {
-  languageId?: true
-}
 
 export type LanguageMinAggregateInputType = {
   languageId?: true
@@ -125,18 +107,6 @@ export type LanguageAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: LanguageAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: LanguageSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: LanguageMinAggregateInputType
@@ -167,20 +137,16 @@ export type LanguageGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: LanguageCountAggregateInputType | true
-  _avg?: LanguageAvgAggregateInputType
-  _sum?: LanguageSumAggregateInputType
   _min?: LanguageMinAggregateInputType
   _max?: LanguageMaxAggregateInputType
 }
 
 export type LanguageGroupByOutputType = {
-  languageId: number
+  languageId: string
   code: string
   name: string
   voiceName: string
   _count: LanguageCountAggregateOutputType | null
-  _avg: LanguageAvgAggregateOutputType | null
-  _sum: LanguageSumAggregateOutputType | null
   _min: LanguageMinAggregateOutputType | null
   _max: LanguageMaxAggregateOutputType | null
 }
@@ -204,7 +170,7 @@ export type LanguageWhereInput = {
   AND?: Prisma.LanguageWhereInput | Prisma.LanguageWhereInput[]
   OR?: Prisma.LanguageWhereInput[]
   NOT?: Prisma.LanguageWhereInput | Prisma.LanguageWhereInput[]
-  languageId?: Prisma.IntFilter<"Language"> | number
+  languageId?: Prisma.UuidFilter<"Language"> | string
   code?: Prisma.StringFilter<"Language"> | string
   name?: Prisma.StringFilter<"Language"> | string
   voiceName?: Prisma.StringFilter<"Language"> | string
@@ -220,7 +186,7 @@ export type LanguageOrderByWithRelationInput = {
 }
 
 export type LanguageWhereUniqueInput = Prisma.AtLeast<{
-  languageId?: number
+  languageId?: string
   code?: string
   AND?: Prisma.LanguageWhereInput | Prisma.LanguageWhereInput[]
   OR?: Prisma.LanguageWhereInput[]
@@ -236,23 +202,22 @@ export type LanguageOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   voiceName?: Prisma.SortOrder
   _count?: Prisma.LanguageCountOrderByAggregateInput
-  _avg?: Prisma.LanguageAvgOrderByAggregateInput
   _max?: Prisma.LanguageMaxOrderByAggregateInput
   _min?: Prisma.LanguageMinOrderByAggregateInput
-  _sum?: Prisma.LanguageSumOrderByAggregateInput
 }
 
 export type LanguageScalarWhereWithAggregatesInput = {
   AND?: Prisma.LanguageScalarWhereWithAggregatesInput | Prisma.LanguageScalarWhereWithAggregatesInput[]
   OR?: Prisma.LanguageScalarWhereWithAggregatesInput[]
   NOT?: Prisma.LanguageScalarWhereWithAggregatesInput | Prisma.LanguageScalarWhereWithAggregatesInput[]
-  languageId?: Prisma.IntWithAggregatesFilter<"Language"> | number
+  languageId?: Prisma.UuidWithAggregatesFilter<"Language"> | string
   code?: Prisma.StringWithAggregatesFilter<"Language"> | string
   name?: Prisma.StringWithAggregatesFilter<"Language"> | string
   voiceName?: Prisma.StringWithAggregatesFilter<"Language"> | string
 }
 
 export type LanguageCreateInput = {
+  languageId?: string
   code: string
   name: string
   voiceName: string
@@ -260,7 +225,7 @@ export type LanguageCreateInput = {
 }
 
 export type LanguageUncheckedCreateInput = {
-  languageId?: number
+  languageId?: string
   code: string
   name: string
   voiceName: string
@@ -268,6 +233,7 @@ export type LanguageUncheckedCreateInput = {
 }
 
 export type LanguageUpdateInput = {
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -275,7 +241,7 @@ export type LanguageUpdateInput = {
 }
 
 export type LanguageUncheckedUpdateInput = {
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -283,20 +249,21 @@ export type LanguageUncheckedUpdateInput = {
 }
 
 export type LanguageCreateManyInput = {
-  languageId?: number
+  languageId?: string
   code: string
   name: string
   voiceName: string
 }
 
 export type LanguageUpdateManyMutationInput = {
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type LanguageUncheckedUpdateManyInput = {
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -307,10 +274,6 @@ export type LanguageCountOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   voiceName?: Prisma.SortOrder
-}
-
-export type LanguageAvgOrderByAggregateInput = {
-  languageId?: Prisma.SortOrder
 }
 
 export type LanguageMaxOrderByAggregateInput = {
@@ -327,10 +290,6 @@ export type LanguageMinOrderByAggregateInput = {
   voiceName?: Prisma.SortOrder
 }
 
-export type LanguageSumOrderByAggregateInput = {
-  languageId?: Prisma.SortOrder
-}
-
 export type LanguageScalarRelationFilter = {
   is?: Prisma.LanguageWhereInput
   isNot?: Prisma.LanguageWhereInput
@@ -338,14 +297,6 @@ export type LanguageScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type LanguageCreateNestedOneWithoutUserSettingsInput = {
@@ -363,13 +314,14 @@ export type LanguageUpdateOneRequiredWithoutUserSettingsNestedInput = {
 }
 
 export type LanguageCreateWithoutUserSettingsInput = {
+  languageId?: string
   code: string
   name: string
   voiceName: string
 }
 
 export type LanguageUncheckedCreateWithoutUserSettingsInput = {
-  languageId?: number
+  languageId?: string
   code: string
   name: string
   voiceName: string
@@ -392,13 +344,14 @@ export type LanguageUpdateToOneWithWhereWithoutUserSettingsInput = {
 }
 
 export type LanguageUpdateWithoutUserSettingsInput = {
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type LanguageUncheckedUpdateWithoutUserSettingsInput = {
-  languageId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   voiceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -479,7 +432,7 @@ export type $LanguagePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     userSettings: Prisma.$UserSettingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    languageId: number
+    languageId: string
     code: string
     name: string
     voiceName: string
@@ -907,7 +860,7 @@ export interface Prisma__LanguageClient<T, Null = never, ExtArgs extends runtime
  * Fields of the Language model
  */
 export interface LanguageFieldRefs {
-  readonly languageId: Prisma.FieldRef<"Language", 'Int'>
+  readonly languageId: Prisma.FieldRef<"Language", 'String'>
   readonly code: Prisma.FieldRef<"Language", 'String'>
   readonly name: Prisma.FieldRef<"Language", 'String'>
   readonly voiceName: Prisma.FieldRef<"Language", 'String'>

@@ -9,15 +9,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => request.cookies?.accessToken,
+        (request: Request | undefined): string | null => {
+          const cookieRequest = request as
+            | { cookies?: { accessToken?: string } }
+            | undefined;
+
+          return cookieRequest?.cookies?.accessToken ?? null;
+        },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('JWT_ACCESS_SECRET'), //imzayı doğrular
+      secretOrKey: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
     });
   }
-  //usermodul gelince değişicek const user = await this.userService.findById(payload.sub) return user;
-  async validate(payload: { sub: number; email: string; deviceId?: number }) {
+
+  validate(payload: { sub: string; email: string; deviceId?: string }) {
     return {
       userId: payload.sub,
       email: payload.email,

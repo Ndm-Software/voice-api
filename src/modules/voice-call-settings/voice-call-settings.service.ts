@@ -42,7 +42,7 @@ export class VoiceCallSettingsService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const voiceCallSetting = await this.prisma.voiceCallSetting.findUnique({
       where: {
         callId: id,
@@ -59,7 +59,7 @@ export class VoiceCallSettingsService {
     return voiceCallSetting;
   }
 
-  async update(id: number, dto: UpdateVoiceCallSettingDto) {
+  async update(id: string, dto: UpdateVoiceCallSettingDto) {
     await this.findOne(id);
 
     const updatedVoiceCallSetting = await this.prisma.voiceCallSetting.update({
@@ -78,7 +78,7 @@ export class VoiceCallSettingsService {
     };
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findOne(id);
 
     await this.prisma.voiceCallSetting.delete({

@@ -3,6 +3,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -12,9 +13,10 @@ export class SaveUserSettingsDto {
   /**
    * Languages tablosundaki dilin ID değeri.
    */
-  @IsInt({ message: 'Dil ID değeri tam sayı olmalıdır.' })
-  @Min(1, { message: 'Geçerli bir dil seçilmelidir.' })
-  languageId!: number;
+  @IsUUID(undefined, {
+    message: 'Dil ID değeri geçerli bir UUID olmalıdır.',
+  })
+  languageId!: string;
 
   /**
    * IANA timezone değeri.

@@ -1,8 +1,8 @@
-import { IsBoolean, IsInt } from 'class-validator';
+import { IsBoolean, IsInt, IsUUID } from 'class-validator';
 
 export class CreateVoiceCallSettingDto {
-  @IsInt()
-  reminderId: number;
+  @IsUUID()
+  reminderId: string;
 
   @IsInt()
   minutesBefore: number;

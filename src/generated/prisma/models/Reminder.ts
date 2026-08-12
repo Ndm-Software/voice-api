@@ -20,28 +20,14 @@ export type ReminderModel = runtime.Types.Result.DefaultSelection<Prisma.$Remind
 
 export type AggregateReminder = {
   _count: ReminderCountAggregateOutputType | null
-  _avg: ReminderAvgAggregateOutputType | null
-  _sum: ReminderSumAggregateOutputType | null
   _min: ReminderMinAggregateOutputType | null
   _max: ReminderMaxAggregateOutputType | null
 }
 
-export type ReminderAvgAggregateOutputType = {
-  reminderId: number | null
-  userId: number | null
-  parentReminderId: number | null
-}
-
-export type ReminderSumAggregateOutputType = {
-  reminderId: number | null
-  userId: number | null
-  parentReminderId: number | null
-}
-
 export type ReminderMinAggregateOutputType = {
-  reminderId: number | null
-  userId: number | null
-  parentReminderId: number | null
+  reminderId: string | null
+  userId: string | null
+  parentReminderId: string | null
   title: string | null
   description: string | null
   eventDatetime: Date | null
@@ -54,9 +40,9 @@ export type ReminderMinAggregateOutputType = {
 }
 
 export type ReminderMaxAggregateOutputType = {
-  reminderId: number | null
-  userId: number | null
-  parentReminderId: number | null
+  reminderId: string | null
+  userId: string | null
+  parentReminderId: string | null
   title: string | null
   description: string | null
   eventDatetime: Date | null
@@ -84,18 +70,6 @@ export type ReminderCountAggregateOutputType = {
   _all: number
 }
 
-
-export type ReminderAvgAggregateInputType = {
-  reminderId?: true
-  userId?: true
-  parentReminderId?: true
-}
-
-export type ReminderSumAggregateInputType = {
-  reminderId?: true
-  userId?: true
-  parentReminderId?: true
-}
 
 export type ReminderMinAggregateInputType = {
   reminderId?: true
@@ -181,18 +155,6 @@ export type ReminderAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: ReminderAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: ReminderSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: ReminderMinAggregateInputType
@@ -223,16 +185,14 @@ export type ReminderGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: ReminderCountAggregateInputType | true
-  _avg?: ReminderAvgAggregateInputType
-  _sum?: ReminderSumAggregateInputType
   _min?: ReminderMinAggregateInputType
   _max?: ReminderMaxAggregateInputType
 }
 
 export type ReminderGroupByOutputType = {
-  reminderId: number
-  userId: number
-  parentReminderId: number | null
+  reminderId: string
+  userId: string
+  parentReminderId: string | null
   title: string
   description: string | null
   eventDatetime: Date
@@ -243,8 +203,6 @@ export type ReminderGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   _count: ReminderCountAggregateOutputType | null
-  _avg: ReminderAvgAggregateOutputType | null
-  _sum: ReminderSumAggregateOutputType | null
   _min: ReminderMinAggregateOutputType | null
   _max: ReminderMaxAggregateOutputType | null
 }
@@ -268,9 +226,9 @@ export type ReminderWhereInput = {
   AND?: Prisma.ReminderWhereInput | Prisma.ReminderWhereInput[]
   OR?: Prisma.ReminderWhereInput[]
   NOT?: Prisma.ReminderWhereInput | Prisma.ReminderWhereInput[]
-  reminderId?: Prisma.IntFilter<"Reminder"> | number
-  userId?: Prisma.IntFilter<"Reminder"> | number
-  parentReminderId?: Prisma.IntNullableFilter<"Reminder"> | number | null
+  reminderId?: Prisma.UuidFilter<"Reminder"> | string
+  userId?: Prisma.UuidFilter<"Reminder"> | string
+  parentReminderId?: Prisma.UuidNullableFilter<"Reminder"> | string | null
   title?: Prisma.StringFilter<"Reminder"> | string
   description?: Prisma.StringNullableFilter<"Reminder"> | string | null
   eventDatetime?: Prisma.DateTimeFilter<"Reminder"> | Date | string
@@ -310,12 +268,12 @@ export type ReminderOrderByWithRelationInput = {
 }
 
 export type ReminderWhereUniqueInput = Prisma.AtLeast<{
-  reminderId?: number
+  reminderId?: string
   AND?: Prisma.ReminderWhereInput | Prisma.ReminderWhereInput[]
   OR?: Prisma.ReminderWhereInput[]
   NOT?: Prisma.ReminderWhereInput | Prisma.ReminderWhereInput[]
-  userId?: Prisma.IntFilter<"Reminder"> | number
-  parentReminderId?: Prisma.IntNullableFilter<"Reminder"> | number | null
+  userId?: Prisma.UuidFilter<"Reminder"> | string
+  parentReminderId?: Prisma.UuidNullableFilter<"Reminder"> | string | null
   title?: Prisma.StringFilter<"Reminder"> | string
   description?: Prisma.StringNullableFilter<"Reminder"> | string | null
   eventDatetime?: Prisma.DateTimeFilter<"Reminder"> | Date | string
@@ -347,19 +305,17 @@ export type ReminderOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ReminderCountOrderByAggregateInput
-  _avg?: Prisma.ReminderAvgOrderByAggregateInput
   _max?: Prisma.ReminderMaxOrderByAggregateInput
   _min?: Prisma.ReminderMinOrderByAggregateInput
-  _sum?: Prisma.ReminderSumOrderByAggregateInput
 }
 
 export type ReminderScalarWhereWithAggregatesInput = {
   AND?: Prisma.ReminderScalarWhereWithAggregatesInput | Prisma.ReminderScalarWhereWithAggregatesInput[]
   OR?: Prisma.ReminderScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ReminderScalarWhereWithAggregatesInput | Prisma.ReminderScalarWhereWithAggregatesInput[]
-  reminderId?: Prisma.IntWithAggregatesFilter<"Reminder"> | number
-  userId?: Prisma.IntWithAggregatesFilter<"Reminder"> | number
-  parentReminderId?: Prisma.IntNullableWithAggregatesFilter<"Reminder"> | number | null
+  reminderId?: Prisma.UuidWithAggregatesFilter<"Reminder"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Reminder"> | string
+  parentReminderId?: Prisma.UuidNullableWithAggregatesFilter<"Reminder"> | string | null
   title?: Prisma.StringWithAggregatesFilter<"Reminder"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Reminder"> | string | null
   eventDatetime?: Prisma.DateTimeWithAggregatesFilter<"Reminder"> | Date | string
@@ -372,6 +328,7 @@ export type ReminderScalarWhereWithAggregatesInput = {
 }
 
 export type ReminderCreateInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -390,9 +347,9 @@ export type ReminderCreateInput = {
 }
 
 export type ReminderUncheckedCreateInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -409,6 +366,7 @@ export type ReminderUncheckedCreateInput = {
 }
 
 export type ReminderUpdateInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -427,9 +385,9 @@ export type ReminderUpdateInput = {
 }
 
 export type ReminderUncheckedUpdateInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -446,9 +404,9 @@ export type ReminderUncheckedUpdateInput = {
 }
 
 export type ReminderCreateManyInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -461,6 +419,7 @@ export type ReminderCreateManyInput = {
 }
 
 export type ReminderUpdateManyMutationInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -473,9 +432,9 @@ export type ReminderUpdateManyMutationInput = {
 }
 
 export type ReminderUncheckedUpdateManyInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -517,12 +476,6 @@ export type ReminderCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type ReminderAvgOrderByAggregateInput = {
-  reminderId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-  parentReminderId?: Prisma.SortOrder
-}
-
 export type ReminderMaxOrderByAggregateInput = {
   reminderId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -551,12 +504,6 @@ export type ReminderMinOrderByAggregateInput = {
   isUrgent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-}
-
-export type ReminderSumOrderByAggregateInput = {
-  reminderId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-  parentReminderId?: Prisma.SortOrder
 }
 
 export type ReminderScalarRelationFilter = {
@@ -658,14 +605,6 @@ export type ReminderUpdateManyWithoutParentReminderNestedInput = {
   deleteMany?: Prisma.ReminderScalarWhereInput | Prisma.ReminderScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ReminderUncheckedUpdateManyWithoutParentReminderNestedInput = {
   create?: Prisma.XOR<Prisma.ReminderCreateWithoutParentReminderInput, Prisma.ReminderUncheckedCreateWithoutParentReminderInput> | Prisma.ReminderCreateWithoutParentReminderInput[] | Prisma.ReminderUncheckedCreateWithoutParentReminderInput[]
   connectOrCreate?: Prisma.ReminderCreateOrConnectWithoutParentReminderInput | Prisma.ReminderCreateOrConnectWithoutParentReminderInput[]
@@ -723,6 +662,7 @@ export type ReminderUpdateOneRequiredWithoutVoiceCallSettingsNestedInput = {
 }
 
 export type ReminderCreateWithoutUserInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -740,8 +680,8 @@ export type ReminderCreateWithoutUserInput = {
 }
 
 export type ReminderUncheckedCreateWithoutUserInput = {
-  reminderId?: number
-  parentReminderId?: number | null
+  reminderId?: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -787,9 +727,9 @@ export type ReminderScalarWhereInput = {
   AND?: Prisma.ReminderScalarWhereInput | Prisma.ReminderScalarWhereInput[]
   OR?: Prisma.ReminderScalarWhereInput[]
   NOT?: Prisma.ReminderScalarWhereInput | Prisma.ReminderScalarWhereInput[]
-  reminderId?: Prisma.IntFilter<"Reminder"> | number
-  userId?: Prisma.IntFilter<"Reminder"> | number
-  parentReminderId?: Prisma.IntNullableFilter<"Reminder"> | number | null
+  reminderId?: Prisma.UuidFilter<"Reminder"> | string
+  userId?: Prisma.UuidFilter<"Reminder"> | string
+  parentReminderId?: Prisma.UuidNullableFilter<"Reminder"> | string | null
   title?: Prisma.StringFilter<"Reminder"> | string
   description?: Prisma.StringNullableFilter<"Reminder"> | string | null
   eventDatetime?: Prisma.DateTimeFilter<"Reminder"> | Date | string
@@ -802,6 +742,7 @@ export type ReminderScalarWhereInput = {
 }
 
 export type ReminderCreateWithoutChildRemindersInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -819,9 +760,9 @@ export type ReminderCreateWithoutChildRemindersInput = {
 }
 
 export type ReminderUncheckedCreateWithoutChildRemindersInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -842,6 +783,7 @@ export type ReminderCreateOrConnectWithoutChildRemindersInput = {
 }
 
 export type ReminderCreateWithoutParentReminderInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -859,8 +801,8 @@ export type ReminderCreateWithoutParentReminderInput = {
 }
 
 export type ReminderUncheckedCreateWithoutParentReminderInput = {
-  reminderId?: number
-  userId: number
+  reminderId?: string
+  userId: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -898,6 +840,7 @@ export type ReminderUpdateToOneWithWhereWithoutChildRemindersInput = {
 }
 
 export type ReminderUpdateWithoutChildRemindersInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -915,9 +858,9 @@ export type ReminderUpdateWithoutChildRemindersInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutChildRemindersInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -949,6 +892,7 @@ export type ReminderUpdateManyWithWhereWithoutParentReminderInput = {
 }
 
 export type ReminderCreateWithoutHistoriesInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -966,9 +910,9 @@ export type ReminderCreateWithoutHistoriesInput = {
 }
 
 export type ReminderUncheckedCreateWithoutHistoriesInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1000,6 +944,7 @@ export type ReminderUpdateToOneWithWhereWithoutHistoriesInput = {
 }
 
 export type ReminderUpdateWithoutHistoriesInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1017,9 +962,9 @@ export type ReminderUpdateWithoutHistoriesInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutHistoriesInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1035,6 +980,7 @@ export type ReminderUncheckedUpdateWithoutHistoriesInput = {
 }
 
 export type ReminderCreateWithoutPushNotificationsInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1052,9 +998,9 @@ export type ReminderCreateWithoutPushNotificationsInput = {
 }
 
 export type ReminderUncheckedCreateWithoutPushNotificationsInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1086,6 +1032,7 @@ export type ReminderUpdateToOneWithWhereWithoutPushNotificationsInput = {
 }
 
 export type ReminderUpdateWithoutPushNotificationsInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1103,9 +1050,9 @@ export type ReminderUpdateWithoutPushNotificationsInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutPushNotificationsInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1121,6 +1068,7 @@ export type ReminderUncheckedUpdateWithoutPushNotificationsInput = {
 }
 
 export type ReminderCreateWithoutVoiceCallSettingsInput = {
+  reminderId?: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1138,9 +1086,9 @@ export type ReminderCreateWithoutVoiceCallSettingsInput = {
 }
 
 export type ReminderUncheckedCreateWithoutVoiceCallSettingsInput = {
-  reminderId?: number
-  userId: number
-  parentReminderId?: number | null
+  reminderId?: string
+  userId: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1172,6 +1120,7 @@ export type ReminderUpdateToOneWithWhereWithoutVoiceCallSettingsInput = {
 }
 
 export type ReminderUpdateWithoutVoiceCallSettingsInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1189,9 +1138,9 @@ export type ReminderUpdateWithoutVoiceCallSettingsInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutVoiceCallSettingsInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1207,8 +1156,8 @@ export type ReminderUncheckedUpdateWithoutVoiceCallSettingsInput = {
 }
 
 export type ReminderCreateManyUserInput = {
-  reminderId?: number
-  parentReminderId?: number | null
+  reminderId?: string
+  parentReminderId?: string | null
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1221,6 +1170,7 @@ export type ReminderCreateManyUserInput = {
 }
 
 export type ReminderUpdateWithoutUserInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1238,8 +1188,8 @@ export type ReminderUpdateWithoutUserInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutUserInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1256,8 +1206,8 @@ export type ReminderUncheckedUpdateWithoutUserInput = {
 }
 
 export type ReminderUncheckedUpdateManyWithoutUserInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  parentReminderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentReminderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1270,8 +1220,8 @@ export type ReminderUncheckedUpdateManyWithoutUserInput = {
 }
 
 export type ReminderCreateManyParentReminderInput = {
-  reminderId?: number
-  userId: number
+  reminderId?: string
+  userId: string
   title: string
   description?: string | null
   eventDatetime: Date | string
@@ -1284,6 +1234,7 @@ export type ReminderCreateManyParentReminderInput = {
 }
 
 export type ReminderUpdateWithoutParentReminderInput = {
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1301,8 +1252,8 @@ export type ReminderUpdateWithoutParentReminderInput = {
 }
 
 export type ReminderUncheckedUpdateWithoutParentReminderInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1319,8 +1270,8 @@ export type ReminderUncheckedUpdateWithoutParentReminderInput = {
 }
 
 export type ReminderUncheckedUpdateManyWithoutParentReminderInput = {
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   eventDatetime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1491,9 +1442,9 @@ export type $ReminderPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     histories: Prisma.$ReminderHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    reminderId: number
-    userId: number
-    parentReminderId: number | null
+    reminderId: string
+    userId: string
+    parentReminderId: string | null
     title: string
     description: string | null
     eventDatetime: Date
@@ -1932,9 +1883,9 @@ export interface Prisma__ReminderClient<T, Null = never, ExtArgs extends runtime
  * Fields of the Reminder model
  */
 export interface ReminderFieldRefs {
-  readonly reminderId: Prisma.FieldRef<"Reminder", 'Int'>
-  readonly userId: Prisma.FieldRef<"Reminder", 'Int'>
-  readonly parentReminderId: Prisma.FieldRef<"Reminder", 'Int'>
+  readonly reminderId: Prisma.FieldRef<"Reminder", 'String'>
+  readonly userId: Prisma.FieldRef<"Reminder", 'String'>
+  readonly parentReminderId: Prisma.FieldRef<"Reminder", 'String'>
   readonly title: Prisma.FieldRef<"Reminder", 'String'>
   readonly description: Prisma.FieldRef<"Reminder", 'String'>
   readonly eventDatetime: Prisma.FieldRef<"Reminder", 'DateTime'>

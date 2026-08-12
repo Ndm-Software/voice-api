@@ -9,7 +9,7 @@ import { UpdateReminderDto } from './dto/update-reminder.dto';
 export class RemindersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: number, dto: CreateReminderDto) {
+  async create(userId: string, dto: CreateReminderDto) {
     const reminder = await this.prisma.reminder.create({
       data: {
         userId,
@@ -47,7 +47,7 @@ export class RemindersService {
     return this.findOne(userId, reminder.reminderId);
   }
 
-  async findAll(userId: number) {
+  async findAll(userId: string) {
     return this.prisma.reminder.findMany({
       where: {
         userId,
@@ -62,7 +62,7 @@ export class RemindersService {
     });
   }
 
-  async findOne(userId: number, reminderId: number) {
+  async findOne(userId: string, reminderId: string) {
     const reminder = await this.prisma.reminder.findFirst({
       where: {
         reminderId,
@@ -81,7 +81,7 @@ export class RemindersService {
     return reminder;
   }
 
-  async update(userId: number, reminderId: number, dto: UpdateReminderDto) {
+  async update(userId: string, reminderId: string, dto: UpdateReminderDto) {
     await this.findOne(userId, reminderId);
 
     await this.prisma.reminder.update({
@@ -118,7 +118,7 @@ export class RemindersService {
     return this.findOne(userId, reminderId);
   }
 
-  async remove(userId: number, reminderId: number) {
+  async remove(userId: string, reminderId: string) {
     await this.findOne(userId, reminderId);
 
     await this.prisma.reminder.delete({

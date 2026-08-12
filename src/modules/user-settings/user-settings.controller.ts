@@ -16,7 +16,7 @@ import { UserSettingsService } from './user-settings.service';
 
 type AuthenticatedRequest = Request & {
   user: {
-    userId: number;
+    userId: string;
     email: string;
   };
 };

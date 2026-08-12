@@ -10,7 +10,7 @@ datasource db {
 }
 
 model Language {
-  languageId Int    @id @default(autoincrement()) @map("language_id")
+  languageId String @id @default(uuid()) @map("language_id") @db.Uuid
   code       String @unique
   name       String
   voiceName  String @map("voice_name")
@@ -21,7 +21,7 @@ model Language {
 }
 
 model User {
-  userId        Int      @id @default(autoincrement()) @map("user_id")
+  userId        String   @id @default(uuid()) @map("user_id") @db.Uuid
   firstName     String   @map("first_name")
   lastName      String   @map("last_name")
   email         String   @unique
@@ -35,20 +35,18 @@ model User {
   devices          Device[]
   otpVerifications OtpVerification[]
   reminders        Reminder[]
-
-  silentHours SilentHour[]
+  silentHours      SilentHour[]
 
   @@map("users")
 }
 
 model UserSetting {
-  settingId  Int @id @default(autoincrement()) @map("setting_id")
-  userId     Int @unique @map("user_id")
-  languageId Int @map("language_id")
+  settingId  String @id @default(uuid()) @map("setting_id") @db.Uuid
+  userId     String @unique @map("user_id") @db.Uuid
+  languageId String @map("language_id") @db.Uuid
 
-  timezone String @db.VarChar(100)
-  province String @db.VarChar(100)
-
+  timezone             String  @db.VarChar(100)
+  province             String  @db.VarChar(100)
   notificationsEnabled Boolean @map("notifications_enabled")
   defaultPushBefore    Int     @map("default_push_before")
   defaultCallBefore    Int     @map("default_call_before")
@@ -71,8 +69,8 @@ enum PlatformType {
 }
 
 model Device {
-  deviceId       Int    @id @default(autoincrement()) @map("device_id")
-  userId         Int    @map("user_id")
+  deviceId       String @id @default(uuid()) @map("device_id") @db.Uuid
+  userId         String @map("user_id") @db.Uuid
   installationId String @map("installation_id") @db.Uuid
 
   platform      PlatformType
@@ -91,8 +89,8 @@ model Device {
 }
 
 model RefreshToken {
-  refreshTokenId Int @id @default(autoincrement()) @map("refresh_token_id")
-  deviceId       Int @map("device_id")
+  refreshTokenId String @id @default(uuid()) @map("refresh_token_id") @db.Uuid
+  deviceId       String @map("device_id") @db.Uuid
 
   tokenHash String    @map("token_hash") @db.Text
   expiresAt DateTime  @map("expires_at")
@@ -105,19 +103,16 @@ model RefreshToken {
 }
 
 model OtpVerification {
-  otpId Int @id @default(autoincrement()) @map("otp_id")
+  otpId String @id @default(uuid()) @map("otp_id") @db.Uuid
 
-  userId      Int    @map("user_id")
+  userId      String @map("user_id") @db.Uuid
   phoneNumber String @map("phone_number") @db.VarChar(20)
-
-  otpCode String @map("otp_code") @db.VarChar(10)
+  otpCode     String @map("otp_code") @db.VarChar(10)
 
   purpose OtpPurpose
 
   expiresAt DateTime @map("expires_at")
-
-  verified Boolean @default(false)
-
+  verified  Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -132,29 +127,19 @@ enum OtpPurpose {
 }
 
 model Reminder {
-  reminderId Int @id @default(autoincrement()) @map("reminder_id")
+  reminderId       String  @id @default(uuid()) @map("reminder_id") @db.Uuid
+  userId           String  @map("user_id") @db.Uuid
+  parentReminderId String? @map("parent_reminder_id") @db.Uuid
 
-  userId Int @map("user_id")
-
-  parentReminderId Int? @map("parent_reminder_id")
-
-  title String @db.VarChar(255)
-
-  description String? @db.Text
-
-  eventDatetime DateTime @map("event_datetime")
-
-  repeatType RepeatType @map("repeat_type")
-
-  repeatUntil DateTime? @map("repeat_until")
-
-  status ReminderStatus
-
-  isUrgent Boolean @default(false) @map("is_urgent")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  updatedAt DateTime @updatedAt @map("updated_at")
+  title         String         @db.VarChar(255)
+  description   String?        @db.Text
+  eventDatetime DateTime       @map("event_datetime")
+  repeatType    RepeatType     @map("repeat_type")
+  repeatUntil   DateTime?      @map("repeat_until")
+  status        ReminderStatus
+  isUrgent      Boolean        @default(false) @map("is_urgent")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
@@ -181,22 +166,16 @@ enum ReminderStatus {
 }
 
 model ReminderHistory {
-  historyId Int @id @default(autoincrement()) @map("history_id")
+  historyId    String        @id @default(uuid()) @map("history_id") @db.Uuid
+  reminderId   String        @map("reminder_id") @db.Uuid
+  historyType  HistoryType
+  status       HistoryStatus
+  provider     String?       @db.VarChar(50)
+  sentAt       DateTime?     @map("sent_at")
+  attempt      Int           @default(0)
+  errorMessage String?       @map("error_message") @db.Text
 
-  reminderId Int @map("reminder_id")
-
-  historyType HistoryType
-
-  status HistoryStatus
-
-  provider String? @db.VarChar(50)
-
-  sentAt DateTime? @map("sent_at")
-
-  attempt Int @default(0)
-
-  errorMessage String?  @map("error_message") @db.Text
-  reminder     Reminder @relation(fields: [reminderId], references: [reminderId], onDelete: Cascade)
+  reminder Reminder @relation(fields: [reminderId], references: [reminderId], onDelete: Cascade)
 
   @@map("reminder_history")
 }
@@ -213,18 +192,14 @@ enum HistoryStatus {
 }
 
 model PushNotificationSetting {
-  pushId Int @id @default(autoincrement()) @map("push_id")
+  pushId        String @id @default(uuid()) @map("push_id") @db.Uuid
+  reminderId    String @map("reminder_id") @db.Uuid
+  minutesBefore Int    @map("minutes_before")
 
-  reminderId Int @map("reminder_id")
-
-  minutesBefore Int @map("minutes_before")
-
-  jobId String @map("job_id") @db.VarChar(100)
-
+  jobId   String  @map("job_id") @db.VarChar(100)
   enabled Boolean @default(true)
 
   createdAt DateTime @default(now()) @map("created_at")
-
   updatedAt DateTime @updatedAt @map("updated_at")
 
   reminder Reminder @relation(fields: [reminderId], references: [reminderId], onDelete: Cascade)
@@ -233,20 +208,15 @@ model PushNotificationSetting {
 }
 
 model VoiceCallSetting {
-  callId Int @id @default(autoincrement()) @map("call_id")
+  callId        String @id @default(uuid()) @map("call_id") @db.Uuid
+  reminderId    String @map("reminder_id") @db.Uuid
+  minutesBefore Int    @map("minutes_before")
 
-  reminderId Int @map("reminder_id")
-
-  minutesBefore Int @map("minutes_before")
-
-  retryCount Int @default(0) @map("retry_count")
-
-  jobId String? @map("job_id") @db.VarChar(100)
-
-  enabled Boolean @default(true)
+  retryCount Int     @default(0) @map("retry_count")
+  jobId      String? @map("job_id") @db.VarChar(100)
+  enabled    Boolean @default(true)
 
   createdAt DateTime @default(now()) @map("created_at")
-
   updatedAt DateTime @updatedAt @map("updated_at")
 
   reminder Reminder @relation(fields: [reminderId], references: [reminderId], onDelete: Cascade)
@@ -255,18 +225,14 @@ model VoiceCallSetting {
 }
 
 model SilentHour {
-  silentHourId Int @id @default(autoincrement()) @map("silent_hour_id")
+  silentHourId String @id @default(uuid()) @map("silent_hour_id") @db.Uuid
+  userId       String @map("user_id") @db.Uuid
 
-  userId Int @map("user_id")
-
-  dayOfWeek DayOfWeek @map("day_of_week")
-
-  silentStart DateTime @map("silent_start") @db.Time
-
-  silentEnd DateTime @map("silent_end") @db.Time
+  dayOfWeek   DayOfWeek @map("day_of_week")
+  silentStart DateTime  @map("silent_start") @db.Time
+  silentEnd   DateTime  @map("silent_end") @db.Time
 
   createdAt DateTime @default(now()) @map("created_at")
-
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)

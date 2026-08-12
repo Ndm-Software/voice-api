@@ -20,25 +20,13 @@ export type OtpVerificationModel = runtime.Types.Result.DefaultSelection<Prisma.
 
 export type AggregateOtpVerification = {
   _count: OtpVerificationCountAggregateOutputType | null
-  _avg: OtpVerificationAvgAggregateOutputType | null
-  _sum: OtpVerificationSumAggregateOutputType | null
   _min: OtpVerificationMinAggregateOutputType | null
   _max: OtpVerificationMaxAggregateOutputType | null
 }
 
-export type OtpVerificationAvgAggregateOutputType = {
-  otpId: number | null
-  userId: number | null
-}
-
-export type OtpVerificationSumAggregateOutputType = {
-  otpId: number | null
-  userId: number | null
-}
-
 export type OtpVerificationMinAggregateOutputType = {
-  otpId: number | null
-  userId: number | null
+  otpId: string | null
+  userId: string | null
   phoneNumber: string | null
   otpCode: string | null
   purpose: $Enums.OtpPurpose | null
@@ -48,8 +36,8 @@ export type OtpVerificationMinAggregateOutputType = {
 }
 
 export type OtpVerificationMaxAggregateOutputType = {
-  otpId: number | null
-  userId: number | null
+  otpId: string | null
+  userId: string | null
   phoneNumber: string | null
   otpCode: string | null
   purpose: $Enums.OtpPurpose | null
@@ -70,16 +58,6 @@ export type OtpVerificationCountAggregateOutputType = {
   _all: number
 }
 
-
-export type OtpVerificationAvgAggregateInputType = {
-  otpId?: true
-  userId?: true
-}
-
-export type OtpVerificationSumAggregateInputType = {
-  otpId?: true
-  userId?: true
-}
 
 export type OtpVerificationMinAggregateInputType = {
   otpId?: true
@@ -153,18 +131,6 @@ export type OtpVerificationAggregateArgs<ExtArgs extends runtime.Types.Extension
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: OtpVerificationAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: OtpVerificationSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: OtpVerificationMinAggregateInputType
@@ -195,15 +161,13 @@ export type OtpVerificationGroupByArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   _count?: OtpVerificationCountAggregateInputType | true
-  _avg?: OtpVerificationAvgAggregateInputType
-  _sum?: OtpVerificationSumAggregateInputType
   _min?: OtpVerificationMinAggregateInputType
   _max?: OtpVerificationMaxAggregateInputType
 }
 
 export type OtpVerificationGroupByOutputType = {
-  otpId: number
-  userId: number
+  otpId: string
+  userId: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -211,8 +175,6 @@ export type OtpVerificationGroupByOutputType = {
   verified: boolean
   createdAt: Date
   _count: OtpVerificationCountAggregateOutputType | null
-  _avg: OtpVerificationAvgAggregateOutputType | null
-  _sum: OtpVerificationSumAggregateOutputType | null
   _min: OtpVerificationMinAggregateOutputType | null
   _max: OtpVerificationMaxAggregateOutputType | null
 }
@@ -236,8 +198,8 @@ export type OtpVerificationWhereInput = {
   AND?: Prisma.OtpVerificationWhereInput | Prisma.OtpVerificationWhereInput[]
   OR?: Prisma.OtpVerificationWhereInput[]
   NOT?: Prisma.OtpVerificationWhereInput | Prisma.OtpVerificationWhereInput[]
-  otpId?: Prisma.IntFilter<"OtpVerification"> | number
-  userId?: Prisma.IntFilter<"OtpVerification"> | number
+  otpId?: Prisma.UuidFilter<"OtpVerification"> | string
+  userId?: Prisma.UuidFilter<"OtpVerification"> | string
   phoneNumber?: Prisma.StringFilter<"OtpVerification"> | string
   otpCode?: Prisma.StringFilter<"OtpVerification"> | string
   purpose?: Prisma.EnumOtpPurposeFilter<"OtpVerification"> | $Enums.OtpPurpose
@@ -260,11 +222,11 @@ export type OtpVerificationOrderByWithRelationInput = {
 }
 
 export type OtpVerificationWhereUniqueInput = Prisma.AtLeast<{
-  otpId?: number
+  otpId?: string
   AND?: Prisma.OtpVerificationWhereInput | Prisma.OtpVerificationWhereInput[]
   OR?: Prisma.OtpVerificationWhereInput[]
   NOT?: Prisma.OtpVerificationWhereInput | Prisma.OtpVerificationWhereInput[]
-  userId?: Prisma.IntFilter<"OtpVerification"> | number
+  userId?: Prisma.UuidFilter<"OtpVerification"> | string
   phoneNumber?: Prisma.StringFilter<"OtpVerification"> | string
   otpCode?: Prisma.StringFilter<"OtpVerification"> | string
   purpose?: Prisma.EnumOtpPurposeFilter<"OtpVerification"> | $Enums.OtpPurpose
@@ -284,18 +246,16 @@ export type OtpVerificationOrderByWithAggregationInput = {
   verified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OtpVerificationCountOrderByAggregateInput
-  _avg?: Prisma.OtpVerificationAvgOrderByAggregateInput
   _max?: Prisma.OtpVerificationMaxOrderByAggregateInput
   _min?: Prisma.OtpVerificationMinOrderByAggregateInput
-  _sum?: Prisma.OtpVerificationSumOrderByAggregateInput
 }
 
 export type OtpVerificationScalarWhereWithAggregatesInput = {
   AND?: Prisma.OtpVerificationScalarWhereWithAggregatesInput | Prisma.OtpVerificationScalarWhereWithAggregatesInput[]
   OR?: Prisma.OtpVerificationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OtpVerificationScalarWhereWithAggregatesInput | Prisma.OtpVerificationScalarWhereWithAggregatesInput[]
-  otpId?: Prisma.IntWithAggregatesFilter<"OtpVerification"> | number
-  userId?: Prisma.IntWithAggregatesFilter<"OtpVerification"> | number
+  otpId?: Prisma.UuidWithAggregatesFilter<"OtpVerification"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"OtpVerification"> | string
   phoneNumber?: Prisma.StringWithAggregatesFilter<"OtpVerification"> | string
   otpCode?: Prisma.StringWithAggregatesFilter<"OtpVerification"> | string
   purpose?: Prisma.EnumOtpPurposeWithAggregatesFilter<"OtpVerification"> | $Enums.OtpPurpose
@@ -305,6 +265,7 @@ export type OtpVerificationScalarWhereWithAggregatesInput = {
 }
 
 export type OtpVerificationCreateInput = {
+  otpId?: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -315,8 +276,8 @@ export type OtpVerificationCreateInput = {
 }
 
 export type OtpVerificationUncheckedCreateInput = {
-  otpId?: number
-  userId: number
+  otpId?: string
+  userId: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -326,6 +287,7 @@ export type OtpVerificationUncheckedCreateInput = {
 }
 
 export type OtpVerificationUpdateInput = {
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -336,8 +298,8 @@ export type OtpVerificationUpdateInput = {
 }
 
 export type OtpVerificationUncheckedUpdateInput = {
-  otpId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -347,8 +309,8 @@ export type OtpVerificationUncheckedUpdateInput = {
 }
 
 export type OtpVerificationCreateManyInput = {
-  otpId?: number
-  userId: number
+  otpId?: string
+  userId: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -358,6 +320,7 @@ export type OtpVerificationCreateManyInput = {
 }
 
 export type OtpVerificationUpdateManyMutationInput = {
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -367,8 +330,8 @@ export type OtpVerificationUpdateManyMutationInput = {
 }
 
 export type OtpVerificationUncheckedUpdateManyInput = {
-  otpId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -398,11 +361,6 @@ export type OtpVerificationCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
-export type OtpVerificationAvgOrderByAggregateInput = {
-  otpId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-}
-
 export type OtpVerificationMaxOrderByAggregateInput = {
   otpId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -423,11 +381,6 @@ export type OtpVerificationMinOrderByAggregateInput = {
   expiresAt?: Prisma.SortOrder
   verified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-}
-
-export type OtpVerificationSumOrderByAggregateInput = {
-  otpId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
 }
 
 export type OtpVerificationCreateNestedManyWithoutUserInput = {
@@ -477,6 +430,7 @@ export type EnumOtpPurposeFieldUpdateOperationsInput = {
 }
 
 export type OtpVerificationCreateWithoutUserInput = {
+  otpId?: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -486,7 +440,7 @@ export type OtpVerificationCreateWithoutUserInput = {
 }
 
 export type OtpVerificationUncheckedCreateWithoutUserInput = {
-  otpId?: number
+  otpId?: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -525,8 +479,8 @@ export type OtpVerificationScalarWhereInput = {
   AND?: Prisma.OtpVerificationScalarWhereInput | Prisma.OtpVerificationScalarWhereInput[]
   OR?: Prisma.OtpVerificationScalarWhereInput[]
   NOT?: Prisma.OtpVerificationScalarWhereInput | Prisma.OtpVerificationScalarWhereInput[]
-  otpId?: Prisma.IntFilter<"OtpVerification"> | number
-  userId?: Prisma.IntFilter<"OtpVerification"> | number
+  otpId?: Prisma.UuidFilter<"OtpVerification"> | string
+  userId?: Prisma.UuidFilter<"OtpVerification"> | string
   phoneNumber?: Prisma.StringFilter<"OtpVerification"> | string
   otpCode?: Prisma.StringFilter<"OtpVerification"> | string
   purpose?: Prisma.EnumOtpPurposeFilter<"OtpVerification"> | $Enums.OtpPurpose
@@ -536,7 +490,7 @@ export type OtpVerificationScalarWhereInput = {
 }
 
 export type OtpVerificationCreateManyUserInput = {
-  otpId?: number
+  otpId?: string
   phoneNumber: string
   otpCode: string
   purpose: $Enums.OtpPurpose
@@ -546,6 +500,7 @@ export type OtpVerificationCreateManyUserInput = {
 }
 
 export type OtpVerificationUpdateWithoutUserInput = {
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -555,7 +510,7 @@ export type OtpVerificationUpdateWithoutUserInput = {
 }
 
 export type OtpVerificationUncheckedUpdateWithoutUserInput = {
-  otpId?: Prisma.IntFieldUpdateOperationsInput | number
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -565,7 +520,7 @@ export type OtpVerificationUncheckedUpdateWithoutUserInput = {
 }
 
 export type OtpVerificationUncheckedUpdateManyWithoutUserInput = {
-  otpId?: Prisma.IntFieldUpdateOperationsInput | number
+  otpId?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   otpCode?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
@@ -640,8 +595,8 @@ export type $OtpVerificationPayload<ExtArgs extends runtime.Types.Extensions.Int
     user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    otpId: number
-    userId: number
+    otpId: string
+    userId: string
     phoneNumber: string
     otpCode: string
     purpose: $Enums.OtpPurpose
@@ -1072,8 +1027,8 @@ export interface Prisma__OtpVerificationClient<T, Null = never, ExtArgs extends 
  * Fields of the OtpVerification model
  */
 export interface OtpVerificationFieldRefs {
-  readonly otpId: Prisma.FieldRef<"OtpVerification", 'Int'>
-  readonly userId: Prisma.FieldRef<"OtpVerification", 'Int'>
+  readonly otpId: Prisma.FieldRef<"OtpVerification", 'String'>
+  readonly userId: Prisma.FieldRef<"OtpVerification", 'String'>
   readonly phoneNumber: Prisma.FieldRef<"OtpVerification", 'String'>
   readonly otpCode: Prisma.FieldRef<"OtpVerification", 'String'>
   readonly purpose: Prisma.FieldRef<"OtpVerification", 'OtpPurpose'>
