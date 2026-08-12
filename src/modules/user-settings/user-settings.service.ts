@@ -49,19 +49,16 @@ export class UserSettingsService {
   /**
    * Giriş yapan kullanıcının ayarlarını getirir.
    */
-  async findMine(userId: number) {
-    const settings =
-      await this.prisma.userSetting.findUnique({
-        where: {
-          userId,
-        },
-        select: userSettingsSelect,
-      });
+  async findMine(userId: string) {
+    const settings = await this.prisma.userSetting.findUnique({
+      where: {
+        userId,
+      },
+      select: userSettingsSelect,
+    });
 
     if (!settings) {
-      throw new NotFoundException(
-        'Kullanıcı ayarları henüz oluşturulmamış.',
-      );
+      throw new NotFoundException('Kullanıcı ayarları henüz oluşturulmamış.');
     }
 
     return settings;
@@ -74,10 +71,7 @@ export class UserSettingsService {
    * - Kayıt yoksa create
    * - Kayıt varsa update
    */
-  async save(
-    userId: number,
-    dto: SaveUserSettingsDto,
-  ) {
+  async save(userId: string, dto: SaveUserSettingsDto) {
     await this.validateLanguage(dto.languageId);
     this.validateTimezone(dto.timezone);
 
@@ -94,8 +88,7 @@ export class UserSettingsService {
         languageId: dto.languageId,
         timezone: normalizedTimezone,
         province: normalizedProvince,
-        notificationsEnabled:
-          dto.notificationsEnabled,
+        notificationsEnabled: dto.notificationsEnabled,
         defaultPushBefore: dto.defaultPushBefore,
         defaultCallBefore: dto.defaultCallBefore,
 
@@ -110,8 +103,7 @@ export class UserSettingsService {
         languageId: dto.languageId,
         timezone: normalizedTimezone,
         province: normalizedProvince,
-        notificationsEnabled:
-          dto.notificationsEnabled,
+        notificationsEnabled: dto.notificationsEnabled,
         defaultPushBefore: dto.defaultPushBefore,
         defaultCallBefore: dto.defaultCallBefore,
 
@@ -129,10 +121,7 @@ export class UserSettingsService {
   /**
    * Sadece gönderilen kullanıcı ayarlarını günceller.
    */
-  async update(
-    userId: number,
-    dto: UpdateUserSettingsDto,
-  ) {
+  async update(userId: string, dto: UpdateUserSettingsDto) {
     await this.ensureSettingsExist(userId);
 
     if (dto.languageId !== undefined) {
@@ -169,22 +158,19 @@ export class UserSettingsService {
 
         ...(dto.notificationsEnabled !== undefined
           ? {
-              notificationsEnabled:
-                dto.notificationsEnabled,
+              notificationsEnabled: dto.notificationsEnabled,
             }
           : {}),
 
         ...(dto.defaultPushBefore !== undefined
           ? {
-              defaultPushBefore:
-                dto.defaultPushBefore,
+              defaultPushBefore: dto.defaultPushBefore,
             }
           : {}),
 
         ...(dto.defaultCallBefore !== undefined
           ? {
-              defaultCallBefore:
-                dto.defaultCallBefore,
+              defaultCallBefore: dto.defaultCallBefore,
             }
           : {}),
       },
@@ -198,23 +184,18 @@ export class UserSettingsService {
    *
    * PATCH işleminde kayıt yoksa update yapamayız.
    */
-  private async ensureSettingsExist(
-    userId: number,
-  ): Promise<void> {
-    const settings =
-      await this.prisma.userSetting.findUnique({
-        where: {
-          userId,
-        },
-        select: {
-          settingId: true,
-        },
-      });
+  private async ensureSettingsExist(userId: string): Promise<void> {
+    const settings = await this.prisma.userSetting.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        settingId: true,
+      },
+    });
 
     if (!settings) {
-      throw new NotFoundException(
-        'Kullanıcı ayarları henüz oluşturulmamış.',
-      );
+      throw new NotFoundException('Kullanıcı ayarları henüz oluşturulmamış.');
     }
   }
 
@@ -222,9 +203,7 @@ export class UserSettingsService {
    * Gönderilen languageId gerçekten Languages
    * tablosunda var mı kontrol eder.
    */
-  private async validateLanguage(
-    languageId: number,
-  ): Promise<void> {
+  private async validateLanguage(languageId: string): Promise<void> {
     await this.languagesService.findById(languageId);
   }
 

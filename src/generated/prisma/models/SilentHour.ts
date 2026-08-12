@@ -20,25 +20,13 @@ export type SilentHourModel = runtime.Types.Result.DefaultSelection<Prisma.$Sile
 
 export type AggregateSilentHour = {
   _count: SilentHourCountAggregateOutputType | null
-  _avg: SilentHourAvgAggregateOutputType | null
-  _sum: SilentHourSumAggregateOutputType | null
   _min: SilentHourMinAggregateOutputType | null
   _max: SilentHourMaxAggregateOutputType | null
 }
 
-export type SilentHourAvgAggregateOutputType = {
-  silentHourId: number | null
-  userId: number | null
-}
-
-export type SilentHourSumAggregateOutputType = {
-  silentHourId: number | null
-  userId: number | null
-}
-
 export type SilentHourMinAggregateOutputType = {
-  silentHourId: number | null
-  userId: number | null
+  silentHourId: string | null
+  userId: string | null
   dayOfWeek: $Enums.DayOfWeek | null
   silentStart: Date | null
   silentEnd: Date | null
@@ -47,8 +35,8 @@ export type SilentHourMinAggregateOutputType = {
 }
 
 export type SilentHourMaxAggregateOutputType = {
-  silentHourId: number | null
-  userId: number | null
+  silentHourId: string | null
+  userId: string | null
   dayOfWeek: $Enums.DayOfWeek | null
   silentStart: Date | null
   silentEnd: Date | null
@@ -67,16 +55,6 @@ export type SilentHourCountAggregateOutputType = {
   _all: number
 }
 
-
-export type SilentHourAvgAggregateInputType = {
-  silentHourId?: true
-  userId?: true
-}
-
-export type SilentHourSumAggregateInputType = {
-  silentHourId?: true
-  userId?: true
-}
 
 export type SilentHourMinAggregateInputType = {
   silentHourId?: true
@@ -147,18 +125,6 @@ export type SilentHourAggregateArgs<ExtArgs extends runtime.Types.Extensions.Int
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: SilentHourAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: SilentHourSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: SilentHourMinAggregateInputType
@@ -189,23 +155,19 @@ export type SilentHourGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   _count?: SilentHourCountAggregateInputType | true
-  _avg?: SilentHourAvgAggregateInputType
-  _sum?: SilentHourSumAggregateInputType
   _min?: SilentHourMinAggregateInputType
   _max?: SilentHourMaxAggregateInputType
 }
 
 export type SilentHourGroupByOutputType = {
-  silentHourId: number
-  userId: number
+  silentHourId: string
+  userId: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date
   silentEnd: Date
   createdAt: Date
   updatedAt: Date
   _count: SilentHourCountAggregateOutputType | null
-  _avg: SilentHourAvgAggregateOutputType | null
-  _sum: SilentHourSumAggregateOutputType | null
   _min: SilentHourMinAggregateOutputType | null
   _max: SilentHourMaxAggregateOutputType | null
 }
@@ -229,8 +191,8 @@ export type SilentHourWhereInput = {
   AND?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
   OR?: Prisma.SilentHourWhereInput[]
   NOT?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
-  silentHourId?: Prisma.IntFilter<"SilentHour"> | number
-  userId?: Prisma.IntFilter<"SilentHour"> | number
+  silentHourId?: Prisma.UuidFilter<"SilentHour"> | string
+  userId?: Prisma.UuidFilter<"SilentHour"> | string
   dayOfWeek?: Prisma.EnumDayOfWeekFilter<"SilentHour"> | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
   silentEnd?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
@@ -251,11 +213,11 @@ export type SilentHourOrderByWithRelationInput = {
 }
 
 export type SilentHourWhereUniqueInput = Prisma.AtLeast<{
-  silentHourId?: number
+  silentHourId?: string
   AND?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
   OR?: Prisma.SilentHourWhereInput[]
   NOT?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
-  userId?: Prisma.IntFilter<"SilentHour"> | number
+  userId?: Prisma.UuidFilter<"SilentHour"> | string
   dayOfWeek?: Prisma.EnumDayOfWeekFilter<"SilentHour"> | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
   silentEnd?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
@@ -273,18 +235,16 @@ export type SilentHourOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SilentHourCountOrderByAggregateInput
-  _avg?: Prisma.SilentHourAvgOrderByAggregateInput
   _max?: Prisma.SilentHourMaxOrderByAggregateInput
   _min?: Prisma.SilentHourMinOrderByAggregateInput
-  _sum?: Prisma.SilentHourSumOrderByAggregateInput
 }
 
 export type SilentHourScalarWhereWithAggregatesInput = {
   AND?: Prisma.SilentHourScalarWhereWithAggregatesInput | Prisma.SilentHourScalarWhereWithAggregatesInput[]
   OR?: Prisma.SilentHourScalarWhereWithAggregatesInput[]
   NOT?: Prisma.SilentHourScalarWhereWithAggregatesInput | Prisma.SilentHourScalarWhereWithAggregatesInput[]
-  silentHourId?: Prisma.IntWithAggregatesFilter<"SilentHour"> | number
-  userId?: Prisma.IntWithAggregatesFilter<"SilentHour"> | number
+  silentHourId?: Prisma.UuidWithAggregatesFilter<"SilentHour"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"SilentHour"> | string
   dayOfWeek?: Prisma.EnumDayOfWeekWithAggregatesFilter<"SilentHour"> | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeWithAggregatesFilter<"SilentHour"> | Date | string
   silentEnd?: Prisma.DateTimeWithAggregatesFilter<"SilentHour"> | Date | string
@@ -293,6 +253,7 @@ export type SilentHourScalarWhereWithAggregatesInput = {
 }
 
 export type SilentHourCreateInput = {
+  silentHourId?: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -302,8 +263,8 @@ export type SilentHourCreateInput = {
 }
 
 export type SilentHourUncheckedCreateInput = {
-  silentHourId?: number
-  userId: number
+  silentHourId?: string
+  userId: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -312,6 +273,7 @@ export type SilentHourUncheckedCreateInput = {
 }
 
 export type SilentHourUpdateInput = {
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -321,8 +283,8 @@ export type SilentHourUpdateInput = {
 }
 
 export type SilentHourUncheckedUpdateInput = {
-  silentHourId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -331,8 +293,8 @@ export type SilentHourUncheckedUpdateInput = {
 }
 
 export type SilentHourCreateManyInput = {
-  silentHourId?: number
-  userId: number
+  silentHourId?: string
+  userId: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -341,6 +303,7 @@ export type SilentHourCreateManyInput = {
 }
 
 export type SilentHourUpdateManyMutationInput = {
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -349,8 +312,8 @@ export type SilentHourUpdateManyMutationInput = {
 }
 
 export type SilentHourUncheckedUpdateManyInput = {
-  silentHourId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -378,11 +341,6 @@ export type SilentHourCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type SilentHourAvgOrderByAggregateInput = {
-  silentHourId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-}
-
 export type SilentHourMaxOrderByAggregateInput = {
   silentHourId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -401,11 +359,6 @@ export type SilentHourMinOrderByAggregateInput = {
   silentEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-}
-
-export type SilentHourSumOrderByAggregateInput = {
-  silentHourId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
 }
 
 export type SilentHourCreateNestedManyWithoutUserInput = {
@@ -455,6 +408,7 @@ export type EnumDayOfWeekFieldUpdateOperationsInput = {
 }
 
 export type SilentHourCreateWithoutUserInput = {
+  silentHourId?: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -463,7 +417,7 @@ export type SilentHourCreateWithoutUserInput = {
 }
 
 export type SilentHourUncheckedCreateWithoutUserInput = {
-  silentHourId?: number
+  silentHourId?: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -501,8 +455,8 @@ export type SilentHourScalarWhereInput = {
   AND?: Prisma.SilentHourScalarWhereInput | Prisma.SilentHourScalarWhereInput[]
   OR?: Prisma.SilentHourScalarWhereInput[]
   NOT?: Prisma.SilentHourScalarWhereInput | Prisma.SilentHourScalarWhereInput[]
-  silentHourId?: Prisma.IntFilter<"SilentHour"> | number
-  userId?: Prisma.IntFilter<"SilentHour"> | number
+  silentHourId?: Prisma.UuidFilter<"SilentHour"> | string
+  userId?: Prisma.UuidFilter<"SilentHour"> | string
   dayOfWeek?: Prisma.EnumDayOfWeekFilter<"SilentHour"> | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
   silentEnd?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
@@ -511,7 +465,7 @@ export type SilentHourScalarWhereInput = {
 }
 
 export type SilentHourCreateManyUserInput = {
-  silentHourId?: number
+  silentHourId?: string
   dayOfWeek: $Enums.DayOfWeek
   silentStart: Date | string
   silentEnd: Date | string
@@ -520,6 +474,7 @@ export type SilentHourCreateManyUserInput = {
 }
 
 export type SilentHourUpdateWithoutUserInput = {
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -528,7 +483,7 @@ export type SilentHourUpdateWithoutUserInput = {
 }
 
 export type SilentHourUncheckedUpdateWithoutUserInput = {
-  silentHourId?: Prisma.IntFieldUpdateOperationsInput | number
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,7 +492,7 @@ export type SilentHourUncheckedUpdateWithoutUserInput = {
 }
 
 export type SilentHourUncheckedUpdateManyWithoutUserInput = {
-  silentHourId?: Prisma.IntFieldUpdateOperationsInput | number
+  silentHourId?: Prisma.StringFieldUpdateOperationsInput | string
   dayOfWeek?: Prisma.EnumDayOfWeekFieldUpdateOperationsInput | $Enums.DayOfWeek
   silentStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   silentEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -607,8 +562,8 @@ export type $SilentHourPayload<ExtArgs extends runtime.Types.Extensions.Internal
     user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    silentHourId: number
-    userId: number
+    silentHourId: string
+    userId: string
     dayOfWeek: $Enums.DayOfWeek
     silentStart: Date
     silentEnd: Date
@@ -1038,8 +993,8 @@ export interface Prisma__SilentHourClient<T, Null = never, ExtArgs extends runti
  * Fields of the SilentHour model
  */
 export interface SilentHourFieldRefs {
-  readonly silentHourId: Prisma.FieldRef<"SilentHour", 'Int'>
-  readonly userId: Prisma.FieldRef<"SilentHour", 'Int'>
+  readonly silentHourId: Prisma.FieldRef<"SilentHour", 'String'>
+  readonly userId: Prisma.FieldRef<"SilentHour", 'String'>
   readonly dayOfWeek: Prisma.FieldRef<"SilentHour", 'DayOfWeek'>
   readonly silentStart: Prisma.FieldRef<"SilentHour", 'DateTime'>
   readonly silentEnd: Prisma.FieldRef<"SilentHour", 'DateTime'>

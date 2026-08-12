@@ -20,25 +20,13 @@ export type DeviceModel = runtime.Types.Result.DefaultSelection<Prisma.$DevicePa
 
 export type AggregateDevice = {
   _count: DeviceCountAggregateOutputType | null
-  _avg: DeviceAvgAggregateOutputType | null
-  _sum: DeviceSumAggregateOutputType | null
   _min: DeviceMinAggregateOutputType | null
   _max: DeviceMaxAggregateOutputType | null
 }
 
-export type DeviceAvgAggregateOutputType = {
-  deviceId: number | null
-  userId: number | null
-}
-
-export type DeviceSumAggregateOutputType = {
-  deviceId: number | null
-  userId: number | null
-}
-
 export type DeviceMinAggregateOutputType = {
-  deviceId: number | null
-  userId: number | null
+  deviceId: string | null
+  userId: string | null
   installationId: string | null
   platform: $Enums.PlatformType | null
   deviceName: string | null
@@ -50,8 +38,8 @@ export type DeviceMinAggregateOutputType = {
 }
 
 export type DeviceMaxAggregateOutputType = {
-  deviceId: number | null
-  userId: number | null
+  deviceId: string | null
+  userId: string | null
   installationId: string | null
   platform: $Enums.PlatformType | null
   deviceName: string | null
@@ -76,16 +64,6 @@ export type DeviceCountAggregateOutputType = {
   _all: number
 }
 
-
-export type DeviceAvgAggregateInputType = {
-  deviceId?: true
-  userId?: true
-}
-
-export type DeviceSumAggregateInputType = {
-  deviceId?: true
-  userId?: true
-}
 
 export type DeviceMinAggregateInputType = {
   deviceId?: true
@@ -165,18 +143,6 @@ export type DeviceAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: DeviceAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: DeviceSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: DeviceMinAggregateInputType
@@ -207,15 +173,13 @@ export type DeviceGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: DeviceCountAggregateInputType | true
-  _avg?: DeviceAvgAggregateInputType
-  _sum?: DeviceSumAggregateInputType
   _min?: DeviceMinAggregateInputType
   _max?: DeviceMaxAggregateInputType
 }
 
 export type DeviceGroupByOutputType = {
-  deviceId: number
-  userId: number
+  deviceId: string
+  userId: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -225,8 +189,6 @@ export type DeviceGroupByOutputType = {
   isActive: boolean
   createdAt: Date
   _count: DeviceCountAggregateOutputType | null
-  _avg: DeviceAvgAggregateOutputType | null
-  _sum: DeviceSumAggregateOutputType | null
   _min: DeviceMinAggregateOutputType | null
   _max: DeviceMaxAggregateOutputType | null
 }
@@ -250,8 +212,8 @@ export type DeviceWhereInput = {
   AND?: Prisma.DeviceWhereInput | Prisma.DeviceWhereInput[]
   OR?: Prisma.DeviceWhereInput[]
   NOT?: Prisma.DeviceWhereInput | Prisma.DeviceWhereInput[]
-  deviceId?: Prisma.IntFilter<"Device"> | number
-  userId?: Prisma.IntFilter<"Device"> | number
+  deviceId?: Prisma.UuidFilter<"Device"> | string
+  userId?: Prisma.UuidFilter<"Device"> | string
   installationId?: Prisma.UuidFilter<"Device"> | string
   platform?: Prisma.EnumPlatformTypeFilter<"Device"> | $Enums.PlatformType
   deviceName?: Prisma.StringFilter<"Device"> | string
@@ -280,13 +242,13 @@ export type DeviceOrderByWithRelationInput = {
 }
 
 export type DeviceWhereUniqueInput = Prisma.AtLeast<{
-  deviceId?: number
+  deviceId?: string
   pushTokenHash?: string
   userId_installationId?: Prisma.DeviceUserIdInstallationIdCompoundUniqueInput
   AND?: Prisma.DeviceWhereInput | Prisma.DeviceWhereInput[]
   OR?: Prisma.DeviceWhereInput[]
   NOT?: Prisma.DeviceWhereInput | Prisma.DeviceWhereInput[]
-  userId?: Prisma.IntFilter<"Device"> | number
+  userId?: Prisma.UuidFilter<"Device"> | string
   installationId?: Prisma.UuidFilter<"Device"> | string
   platform?: Prisma.EnumPlatformTypeFilter<"Device"> | $Enums.PlatformType
   deviceName?: Prisma.StringFilter<"Device"> | string
@@ -310,18 +272,16 @@ export type DeviceOrderByWithAggregationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.DeviceCountOrderByAggregateInput
-  _avg?: Prisma.DeviceAvgOrderByAggregateInput
   _max?: Prisma.DeviceMaxOrderByAggregateInput
   _min?: Prisma.DeviceMinOrderByAggregateInput
-  _sum?: Prisma.DeviceSumOrderByAggregateInput
 }
 
 export type DeviceScalarWhereWithAggregatesInput = {
   AND?: Prisma.DeviceScalarWhereWithAggregatesInput | Prisma.DeviceScalarWhereWithAggregatesInput[]
   OR?: Prisma.DeviceScalarWhereWithAggregatesInput[]
   NOT?: Prisma.DeviceScalarWhereWithAggregatesInput | Prisma.DeviceScalarWhereWithAggregatesInput[]
-  deviceId?: Prisma.IntWithAggregatesFilter<"Device"> | number
-  userId?: Prisma.IntWithAggregatesFilter<"Device"> | number
+  deviceId?: Prisma.UuidWithAggregatesFilter<"Device"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Device"> | string
   installationId?: Prisma.UuidWithAggregatesFilter<"Device"> | string
   platform?: Prisma.EnumPlatformTypeWithAggregatesFilter<"Device"> | $Enums.PlatformType
   deviceName?: Prisma.StringWithAggregatesFilter<"Device"> | string
@@ -333,6 +293,7 @@ export type DeviceScalarWhereWithAggregatesInput = {
 }
 
 export type DeviceCreateInput = {
+  deviceId?: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -346,8 +307,8 @@ export type DeviceCreateInput = {
 }
 
 export type DeviceUncheckedCreateInput = {
-  deviceId?: number
-  userId: number
+  deviceId?: string
+  userId: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -360,6 +321,7 @@ export type DeviceUncheckedCreateInput = {
 }
 
 export type DeviceUpdateInput = {
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -373,8 +335,8 @@ export type DeviceUpdateInput = {
 }
 
 export type DeviceUncheckedUpdateInput = {
-  deviceId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -387,8 +349,8 @@ export type DeviceUncheckedUpdateInput = {
 }
 
 export type DeviceCreateManyInput = {
-  deviceId?: number
-  userId: number
+  deviceId?: string
+  userId: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -400,6 +362,7 @@ export type DeviceCreateManyInput = {
 }
 
 export type DeviceUpdateManyMutationInput = {
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -411,8 +374,8 @@ export type DeviceUpdateManyMutationInput = {
 }
 
 export type DeviceUncheckedUpdateManyInput = {
-  deviceId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -434,7 +397,7 @@ export type DeviceOrderByRelationAggregateInput = {
 }
 
 export type DeviceUserIdInstallationIdCompoundUniqueInput = {
-  userId: number
+  userId: string
   installationId: string
 }
 
@@ -449,11 +412,6 @@ export type DeviceCountOrderByAggregateInput = {
   lastActive?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-}
-
-export type DeviceAvgOrderByAggregateInput = {
-  deviceId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
 }
 
 export type DeviceMaxOrderByAggregateInput = {
@@ -480,11 +438,6 @@ export type DeviceMinOrderByAggregateInput = {
   lastActive?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-}
-
-export type DeviceSumOrderByAggregateInput = {
-  deviceId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
 }
 
 export type DeviceScalarRelationFilter = {
@@ -557,6 +510,7 @@ export type DeviceUpdateOneRequiredWithoutRefreshTokensNestedInput = {
 }
 
 export type DeviceCreateWithoutUserInput = {
+  deviceId?: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -569,7 +523,7 @@ export type DeviceCreateWithoutUserInput = {
 }
 
 export type DeviceUncheckedCreateWithoutUserInput = {
-  deviceId?: number
+  deviceId?: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -611,8 +565,8 @@ export type DeviceScalarWhereInput = {
   AND?: Prisma.DeviceScalarWhereInput | Prisma.DeviceScalarWhereInput[]
   OR?: Prisma.DeviceScalarWhereInput[]
   NOT?: Prisma.DeviceScalarWhereInput | Prisma.DeviceScalarWhereInput[]
-  deviceId?: Prisma.IntFilter<"Device"> | number
-  userId?: Prisma.IntFilter<"Device"> | number
+  deviceId?: Prisma.UuidFilter<"Device"> | string
+  userId?: Prisma.UuidFilter<"Device"> | string
   installationId?: Prisma.UuidFilter<"Device"> | string
   platform?: Prisma.EnumPlatformTypeFilter<"Device"> | $Enums.PlatformType
   deviceName?: Prisma.StringFilter<"Device"> | string
@@ -624,6 +578,7 @@ export type DeviceScalarWhereInput = {
 }
 
 export type DeviceCreateWithoutRefreshTokensInput = {
+  deviceId?: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -636,8 +591,8 @@ export type DeviceCreateWithoutRefreshTokensInput = {
 }
 
 export type DeviceUncheckedCreateWithoutRefreshTokensInput = {
-  deviceId?: number
-  userId: number
+  deviceId?: string
+  userId: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -665,6 +620,7 @@ export type DeviceUpdateToOneWithWhereWithoutRefreshTokensInput = {
 }
 
 export type DeviceUpdateWithoutRefreshTokensInput = {
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -677,8 +633,8 @@ export type DeviceUpdateWithoutRefreshTokensInput = {
 }
 
 export type DeviceUncheckedUpdateWithoutRefreshTokensInput = {
-  deviceId?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -690,7 +646,7 @@ export type DeviceUncheckedUpdateWithoutRefreshTokensInput = {
 }
 
 export type DeviceCreateManyUserInput = {
-  deviceId?: number
+  deviceId?: string
   installationId: string
   platform: $Enums.PlatformType
   deviceName: string
@@ -702,6 +658,7 @@ export type DeviceCreateManyUserInput = {
 }
 
 export type DeviceUpdateWithoutUserInput = {
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -714,7 +671,7 @@ export type DeviceUpdateWithoutUserInput = {
 }
 
 export type DeviceUncheckedUpdateWithoutUserInput = {
-  deviceId?: Prisma.IntFieldUpdateOperationsInput | number
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -727,7 +684,7 @@ export type DeviceUncheckedUpdateWithoutUserInput = {
 }
 
 export type DeviceUncheckedUpdateManyWithoutUserInput = {
-  deviceId?: Prisma.IntFieldUpdateOperationsInput | number
+  deviceId?: Prisma.StringFieldUpdateOperationsInput | string
   installationId?: Prisma.StringFieldUpdateOperationsInput | string
   platform?: Prisma.EnumPlatformTypeFieldUpdateOperationsInput | $Enums.PlatformType
   deviceName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -846,8 +803,8 @@ export type $DevicePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    deviceId: number
-    userId: number
+    deviceId: string
+    userId: string
     installationId: string
     platform: $Enums.PlatformType
     deviceName: string
@@ -1281,8 +1238,8 @@ export interface Prisma__DeviceClient<T, Null = never, ExtArgs extends runtime.T
  * Fields of the Device model
  */
 export interface DeviceFieldRefs {
-  readonly deviceId: Prisma.FieldRef<"Device", 'Int'>
-  readonly userId: Prisma.FieldRef<"Device", 'Int'>
+  readonly deviceId: Prisma.FieldRef<"Device", 'String'>
+  readonly userId: Prisma.FieldRef<"Device", 'String'>
   readonly installationId: Prisma.FieldRef<"Device", 'String'>
   readonly platform: Prisma.FieldRef<"Device", 'PlatformType'>
   readonly deviceName: Prisma.FieldRef<"Device", 'String'>

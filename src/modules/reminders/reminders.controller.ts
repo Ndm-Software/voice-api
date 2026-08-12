@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -40,7 +39,7 @@ export class RemindersController {
   @Get(':id')
   findOne(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseIntPipe) reminderId: number,
+    @Param('id') reminderId: string,
   ) {
     return this.remindersService.findOne(user.userId, reminderId);
   }
@@ -48,7 +47,7 @@ export class RemindersController {
   @Patch(':id')
   update(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseIntPipe) reminderId: number,
+    @Param('id') reminderId: string,
     @Body() dto: UpdateReminderDto,
   ) {
     return this.remindersService.update(user.userId, reminderId, dto);
@@ -57,7 +56,7 @@ export class RemindersController {
   @Delete(':id')
   remove(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', ParseIntPipe) reminderId: number,
+    @Param('id') reminderId: string,
   ) {
     return this.remindersService.remove(user.userId, reminderId);
   }

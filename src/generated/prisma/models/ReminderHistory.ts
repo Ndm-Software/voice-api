@@ -27,20 +27,16 @@ export type AggregateReminderHistory = {
 }
 
 export type ReminderHistoryAvgAggregateOutputType = {
-  historyId: number | null
-  reminderId: number | null
   attempt: number | null
 }
 
 export type ReminderHistorySumAggregateOutputType = {
-  historyId: number | null
-  reminderId: number | null
   attempt: number | null
 }
 
 export type ReminderHistoryMinAggregateOutputType = {
-  historyId: number | null
-  reminderId: number | null
+  historyId: string | null
+  reminderId: string | null
   historyType: $Enums.HistoryType | null
   status: $Enums.HistoryStatus | null
   provider: string | null
@@ -50,8 +46,8 @@ export type ReminderHistoryMinAggregateOutputType = {
 }
 
 export type ReminderHistoryMaxAggregateOutputType = {
-  historyId: number | null
-  reminderId: number | null
+  historyId: string | null
+  reminderId: string | null
   historyType: $Enums.HistoryType | null
   status: $Enums.HistoryStatus | null
   provider: string | null
@@ -74,14 +70,10 @@ export type ReminderHistoryCountAggregateOutputType = {
 
 
 export type ReminderHistoryAvgAggregateInputType = {
-  historyId?: true
-  reminderId?: true
   attempt?: true
 }
 
 export type ReminderHistorySumAggregateInputType = {
-  historyId?: true
-  reminderId?: true
   attempt?: true
 }
 
@@ -206,8 +198,8 @@ export type ReminderHistoryGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 export type ReminderHistoryGroupByOutputType = {
-  historyId: number
-  reminderId: number
+  historyId: string
+  reminderId: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider: string | null
@@ -240,8 +232,8 @@ export type ReminderHistoryWhereInput = {
   AND?: Prisma.ReminderHistoryWhereInput | Prisma.ReminderHistoryWhereInput[]
   OR?: Prisma.ReminderHistoryWhereInput[]
   NOT?: Prisma.ReminderHistoryWhereInput | Prisma.ReminderHistoryWhereInput[]
-  historyId?: Prisma.IntFilter<"ReminderHistory"> | number
-  reminderId?: Prisma.IntFilter<"ReminderHistory"> | number
+  historyId?: Prisma.UuidFilter<"ReminderHistory"> | string
+  reminderId?: Prisma.UuidFilter<"ReminderHistory"> | string
   historyType?: Prisma.EnumHistoryTypeFilter<"ReminderHistory"> | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFilter<"ReminderHistory"> | $Enums.HistoryStatus
   provider?: Prisma.StringNullableFilter<"ReminderHistory"> | string | null
@@ -264,11 +256,11 @@ export type ReminderHistoryOrderByWithRelationInput = {
 }
 
 export type ReminderHistoryWhereUniqueInput = Prisma.AtLeast<{
-  historyId?: number
+  historyId?: string
   AND?: Prisma.ReminderHistoryWhereInput | Prisma.ReminderHistoryWhereInput[]
   OR?: Prisma.ReminderHistoryWhereInput[]
   NOT?: Prisma.ReminderHistoryWhereInput | Prisma.ReminderHistoryWhereInput[]
-  reminderId?: Prisma.IntFilter<"ReminderHistory"> | number
+  reminderId?: Prisma.UuidFilter<"ReminderHistory"> | string
   historyType?: Prisma.EnumHistoryTypeFilter<"ReminderHistory"> | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFilter<"ReminderHistory"> | $Enums.HistoryStatus
   provider?: Prisma.StringNullableFilter<"ReminderHistory"> | string | null
@@ -298,8 +290,8 @@ export type ReminderHistoryScalarWhereWithAggregatesInput = {
   AND?: Prisma.ReminderHistoryScalarWhereWithAggregatesInput | Prisma.ReminderHistoryScalarWhereWithAggregatesInput[]
   OR?: Prisma.ReminderHistoryScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ReminderHistoryScalarWhereWithAggregatesInput | Prisma.ReminderHistoryScalarWhereWithAggregatesInput[]
-  historyId?: Prisma.IntWithAggregatesFilter<"ReminderHistory"> | number
-  reminderId?: Prisma.IntWithAggregatesFilter<"ReminderHistory"> | number
+  historyId?: Prisma.UuidWithAggregatesFilter<"ReminderHistory"> | string
+  reminderId?: Prisma.UuidWithAggregatesFilter<"ReminderHistory"> | string
   historyType?: Prisma.EnumHistoryTypeWithAggregatesFilter<"ReminderHistory"> | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusWithAggregatesFilter<"ReminderHistory"> | $Enums.HistoryStatus
   provider?: Prisma.StringNullableWithAggregatesFilter<"ReminderHistory"> | string | null
@@ -309,6 +301,7 @@ export type ReminderHistoryScalarWhereWithAggregatesInput = {
 }
 
 export type ReminderHistoryCreateInput = {
+  historyId?: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -319,8 +312,8 @@ export type ReminderHistoryCreateInput = {
 }
 
 export type ReminderHistoryUncheckedCreateInput = {
-  historyId?: number
-  reminderId: number
+  historyId?: string
+  reminderId: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -330,6 +323,7 @@ export type ReminderHistoryUncheckedCreateInput = {
 }
 
 export type ReminderHistoryUpdateInput = {
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -340,8 +334,8 @@ export type ReminderHistoryUpdateInput = {
 }
 
 export type ReminderHistoryUncheckedUpdateInput = {
-  historyId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -351,8 +345,8 @@ export type ReminderHistoryUncheckedUpdateInput = {
 }
 
 export type ReminderHistoryCreateManyInput = {
-  historyId?: number
-  reminderId: number
+  historyId?: string
+  reminderId: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -362,6 +356,7 @@ export type ReminderHistoryCreateManyInput = {
 }
 
 export type ReminderHistoryUpdateManyMutationInput = {
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -371,8 +366,8 @@ export type ReminderHistoryUpdateManyMutationInput = {
 }
 
 export type ReminderHistoryUncheckedUpdateManyInput = {
-  historyId?: Prisma.IntFieldUpdateOperationsInput | number
-  reminderId?: Prisma.IntFieldUpdateOperationsInput | number
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
+  reminderId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -403,8 +398,6 @@ export type ReminderHistoryCountOrderByAggregateInput = {
 }
 
 export type ReminderHistoryAvgOrderByAggregateInput = {
-  historyId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   attempt?: Prisma.SortOrder
 }
 
@@ -431,8 +424,6 @@ export type ReminderHistoryMinOrderByAggregateInput = {
 }
 
 export type ReminderHistorySumOrderByAggregateInput = {
-  historyId?: Prisma.SortOrder
-  reminderId?: Prisma.SortOrder
   attempt?: Prisma.SortOrder
 }
 
@@ -487,6 +478,7 @@ export type EnumHistoryStatusFieldUpdateOperationsInput = {
 }
 
 export type ReminderHistoryCreateWithoutReminderInput = {
+  historyId?: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -496,7 +488,7 @@ export type ReminderHistoryCreateWithoutReminderInput = {
 }
 
 export type ReminderHistoryUncheckedCreateWithoutReminderInput = {
-  historyId?: number
+  historyId?: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -535,8 +527,8 @@ export type ReminderHistoryScalarWhereInput = {
   AND?: Prisma.ReminderHistoryScalarWhereInput | Prisma.ReminderHistoryScalarWhereInput[]
   OR?: Prisma.ReminderHistoryScalarWhereInput[]
   NOT?: Prisma.ReminderHistoryScalarWhereInput | Prisma.ReminderHistoryScalarWhereInput[]
-  historyId?: Prisma.IntFilter<"ReminderHistory"> | number
-  reminderId?: Prisma.IntFilter<"ReminderHistory"> | number
+  historyId?: Prisma.UuidFilter<"ReminderHistory"> | string
+  reminderId?: Prisma.UuidFilter<"ReminderHistory"> | string
   historyType?: Prisma.EnumHistoryTypeFilter<"ReminderHistory"> | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFilter<"ReminderHistory"> | $Enums.HistoryStatus
   provider?: Prisma.StringNullableFilter<"ReminderHistory"> | string | null
@@ -546,7 +538,7 @@ export type ReminderHistoryScalarWhereInput = {
 }
 
 export type ReminderHistoryCreateManyReminderInput = {
-  historyId?: number
+  historyId?: string
   historyType: $Enums.HistoryType
   status: $Enums.HistoryStatus
   provider?: string | null
@@ -556,6 +548,7 @@ export type ReminderHistoryCreateManyReminderInput = {
 }
 
 export type ReminderHistoryUpdateWithoutReminderInput = {
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -565,7 +558,7 @@ export type ReminderHistoryUpdateWithoutReminderInput = {
 }
 
 export type ReminderHistoryUncheckedUpdateWithoutReminderInput = {
-  historyId?: Prisma.IntFieldUpdateOperationsInput | number
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -575,7 +568,7 @@ export type ReminderHistoryUncheckedUpdateWithoutReminderInput = {
 }
 
 export type ReminderHistoryUncheckedUpdateManyWithoutReminderInput = {
-  historyId?: Prisma.IntFieldUpdateOperationsInput | number
+  historyId?: Prisma.StringFieldUpdateOperationsInput | string
   historyType?: Prisma.EnumHistoryTypeFieldUpdateOperationsInput | $Enums.HistoryType
   status?: Prisma.EnumHistoryStatusFieldUpdateOperationsInput | $Enums.HistoryStatus
   provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -650,8 +643,8 @@ export type $ReminderHistoryPayload<ExtArgs extends runtime.Types.Extensions.Int
     reminder: Prisma.$ReminderPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    historyId: number
-    reminderId: number
+    historyId: string
+    reminderId: string
     historyType: $Enums.HistoryType
     status: $Enums.HistoryStatus
     provider: string | null
@@ -1082,8 +1075,8 @@ export interface Prisma__ReminderHistoryClient<T, Null = never, ExtArgs extends 
  * Fields of the ReminderHistory model
  */
 export interface ReminderHistoryFieldRefs {
-  readonly historyId: Prisma.FieldRef<"ReminderHistory", 'Int'>
-  readonly reminderId: Prisma.FieldRef<"ReminderHistory", 'Int'>
+  readonly historyId: Prisma.FieldRef<"ReminderHistory", 'String'>
+  readonly reminderId: Prisma.FieldRef<"ReminderHistory", 'String'>
   readonly historyType: Prisma.FieldRef<"ReminderHistory", 'HistoryType'>
   readonly status: Prisma.FieldRef<"ReminderHistory", 'HistoryStatus'>
   readonly provider: Prisma.FieldRef<"ReminderHistory", 'String'>

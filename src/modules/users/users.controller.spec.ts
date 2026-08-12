@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
 
 describe('UsersController account deletion', () => {
   const user: AuthenticatedUser = {
-    userId: 42,
+    userId: '99999999-9999-4999-8999-999999999999',
     email: 'user@example.com',
   };
   const result = {
@@ -26,8 +26,8 @@ describe('UsersController account deletion', () => {
   let response: Response;
 
   beforeEach(() => {
-    remove = jest.fn<UsersService['remove']>();
-    clearCookie = jest.fn<Response['clearCookie']>();
+    remove = jest.fn() as jest.MockedFunction<UsersService['remove']>;
+    clearCookie = jest.fn() as jest.MockedFunction<Response['clearCookie']>;
     controller = new UsersController({ remove } as unknown as UsersService);
     response = { clearCookie } as unknown as Response;
   });

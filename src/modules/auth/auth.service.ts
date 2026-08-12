@@ -54,7 +54,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password.');
     }
 
-    // Login yapan cihazı oluştur / güncelle
     const device = await this.devicesService.registerOrUpdate(user.userId, {
       installationId: dto.installationId,
       platform: dto.platform,
@@ -64,7 +63,6 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.userId);
 
-    // Refresh token'ın sadece HASH'ini DB'ye kaydet
     await this.saveRefreshToken(device.deviceId, tokens.refreshToken);
 
     return {
@@ -97,7 +95,6 @@ export class AuthService {
 
     const tokenHash = hashToken(refreshToken);
 
-    // DB'deki aktif refresh tokenı bul
     const storedToken = await this.prisma.refreshToken.findFirst({
       where: {
         tokenHash,
@@ -119,7 +116,6 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token is invalid or revoked.');
     }
 
-    // Eski refresh tokenı revoke et
     await this.prisma.refreshToken.update({
       where: {
         refreshTokenId: storedToken.refreshTokenId,
@@ -131,7 +127,6 @@ export class AuthService {
 
     const tokens = await this.generateTokens(payload.sub);
 
-    // Yeni refresh tokenı DB'ye kaydet
     await this.saveRefreshToken(storedToken.deviceId, tokens.refreshToken);
 
     return {
@@ -158,10 +153,8 @@ export class AuthService {
     };
   }
 
-  private async saveRefreshToken(deviceId: number, refreshToken: string) {
-    const refreshTokenExpiresIn = this.configService.getOrThrow<string>(
-      'JWT_REFRESH_EXPIRES_IN',
-    );
+  private async saveRefreshToken(deviceId: string, refreshToken: string) {
+    const refreshTokenExpiresIn = this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN');
 
     const expiresAt = new Date(
       Date.now() + this.parseDuration(refreshTokenExpiresIn),

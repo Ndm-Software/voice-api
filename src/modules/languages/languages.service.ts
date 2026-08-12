@@ -28,7 +28,7 @@ export class LanguagesService {
     });
   }
 
-  async findById(languageId: number) {
+  async findById(languageId: string) {
     const language = await this.prisma.language.findUnique({
       where: {
         languageId,
@@ -86,7 +86,7 @@ export class LanguagesService {
   }
 
   async update(
-    languageId: number,
+    languageId: string,
     dto: UpdateLanguageDto,
   ) {
     await this.findById(languageId);
@@ -138,7 +138,7 @@ export class LanguagesService {
     });
   }
 
-  async remove(languageId: number) {
+  async remove(languageId: string) {
     await this.findById(languageId);
 
     const relatedSettingsCount =

@@ -9,7 +9,7 @@ import { DevicesService } from './devices.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 
 type DeviceResponse = {
-  deviceId: number;
+  deviceId: string;
   platform: (typeof PlatformType)[keyof typeof PlatformType];
   deviceName: string;
   lastActive: Date;
@@ -18,8 +18,8 @@ type DeviceResponse = {
 };
 
 type PreviousDevice = {
-  deviceId: number;
-  userId: number;
+  deviceId: string;
+  userId: string;
   installationId: string;
   isActive: boolean;
 };
@@ -32,7 +32,7 @@ type RunTransaction = (
 ) => Promise<DeviceResponse>;
 
 describe('DevicesService', () => {
-  const userId = 42;
+  const userId = '33333333-3333-4333-8333-333333333333';
   const dto: RegisterDeviceDto = {
     installationId: '550e8400-e29b-41d4-a716-446655440000',
     platform: PlatformType.WINDOWS,
@@ -43,7 +43,7 @@ describe('DevicesService', () => {
     .update(dto.pushToken ?? '', 'utf8')
     .digest('hex');
   const device: DeviceResponse = {
-    deviceId: 7,
+    deviceId: '44444444-4444-4444-8444-444444444444',
     platform: PlatformType.WINDOWS,
     deviceName: 'Office Desktop',
     lastActive: new Date('2026-08-07T09:00:00.000Z'),
@@ -52,7 +52,7 @@ describe('DevicesService', () => {
   };
 
   let findFirst: jest.MockedFunction<
-    (args: Prisma.DeviceFindFirstArgs) => Promise<{ deviceId: number } | null>
+    (args: Prisma.DeviceFindFirstArgs) => Promise<{ deviceId: string } | null>
   >;
   let findUnique: jest.MockedFunction<
     (args: Prisma.DeviceFindUniqueArgs) => Promise<PreviousDevice | null>
@@ -255,7 +255,7 @@ describe('DevicesService', () => {
   });
 
   it('rejects an installation used by another active account', async () => {
-    findFirst.mockResolvedValue({ deviceId: 99 });
+    findFirst.mockResolvedValue({ deviceId: '88888888-8888-4888-8888-888888888888' });
 
     await expect(service.registerOrUpdate(userId, dto)).rejects.toThrow(
       ConflictException,
@@ -266,7 +266,7 @@ describe('DevicesService', () => {
 
   it('moves a push token from the same user previous installation', async () => {
     findUnique.mockResolvedValue({
-      deviceId: 6,
+      deviceId: '55555555-5555-4555-8555-555555555555',
       userId,
       installationId: '3a290f0a-69d8-4c5d-bd78-a8799ea4aab1',
       isActive: true,
@@ -287,7 +287,7 @@ describe('DevicesService', () => {
     });
     expect(update).toHaveBeenCalledWith({
       where: {
-        deviceId: 6,
+        deviceId: '55555555-5555-4555-8555-555555555555',
       },
       data: {
         pushToken: null,
@@ -300,8 +300,8 @@ describe('DevicesService', () => {
 
   it('rejects a push token owned by another active account', async () => {
     findUnique.mockResolvedValue({
-      deviceId: 8,
-      userId: 84,
+      deviceId: '66666666-6666-4666-8666-666666666666',
+      userId: '77777777-7777-4777-8777-777777777777',
       installationId: 'b84fc66d-bb04-4f71-b5a7-fddf24c31362',
       isActive: true,
     });
