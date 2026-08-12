@@ -51,6 +51,17 @@ describe('RegisterDeviceDto', () => {
     expect(result.pushToken).toBe('sample-token');
   });
 
+  it('accepts null to clear the current push token', async () => {
+    const result = await transform({
+      installationId: '550e8400-e29b-41d4-a716-446655440000',
+      platform: 'IOS',
+      deviceName: 'iPhone',
+      pushToken: null,
+    });
+
+    expect(result.pushToken).toBeNull();
+  });
+
   it('normalizes an uppercase UUID to lowercase', async () => {
     const result = await transform({
       installationId: '550E8400-E29B-41D4-A716-446655440000',
@@ -82,12 +93,6 @@ describe('RegisterDeviceDto', () => {
       platform: 'WEB',
       deviceName: 'Browser',
       pushToken: 'x'.repeat(4097),
-    },
-    {
-      installationId: '550e8400-e29b-41d4-a716-446655440000',
-      platform: 'WEB',
-      deviceName: 'Browser',
-      pushToken: null,
     },
   ])('rejects invalid device input', async (body) => {
     await expect(transform(body)).rejects.toBeInstanceOf(BadRequestException);

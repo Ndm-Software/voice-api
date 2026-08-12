@@ -254,6 +254,34 @@ describe('DevicesService', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
+  it('clears the push token without deactivating the device when null is sent', async () => {
+    const dtoWithNullPushToken: RegisterDeviceDto = {
+      installationId: dto.installationId,
+      platform: dto.platform,
+      deviceName: dto.deviceName,
+      pushToken: null,
+    };
+
+    await service.registerOrUpdate(userId, dtoWithNullPushToken);
+    const upsertArgs = upsert.mock.calls[0][0];
+
+    expect(upsertArgs.create).toEqual(
+      expect.objectContaining({
+        pushToken: null,
+        pushTokenHash: null,
+        isActive: true,
+      }),
+    );
+    expect(upsertArgs.update).toEqual(
+      expect.objectContaining({
+        pushToken: null,
+        pushTokenHash: null,
+        isActive: true,
+      }),
+    );
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('rejects an installation used by another active account', async () => {
     findFirst.mockResolvedValue({ deviceId: 99 });
 
