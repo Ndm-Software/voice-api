@@ -10,9 +10,9 @@ export class VoiceCallController {
     @Body()
     body: {
       to: string;
-      message: string;
     },
   ) {
-    return this.voiceCallService.makeCall(body.to, body.message);
+    // Sadece telefon numarasını gönderiyoruz
+    return this.voiceCallService.makeCall(body.to);
   }
 }
