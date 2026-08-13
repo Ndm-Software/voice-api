@@ -14,7 +14,6 @@ import { UsersService } from './users.service';
 describe('UsersController account deletion', () => {
   const user: AuthenticatedUser = {
     userId: '99999999-9999-4999-8999-999999999999',
-    email: 'user@example.com',
   };
   const result = {
     message: 'Kullanıcı hesabı başarıyla silindi.',
