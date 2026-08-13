@@ -154,7 +154,9 @@ export class AuthService {
   }
 
   private async saveRefreshToken(deviceId: string, refreshToken: string) {
-    const refreshTokenExpiresIn = this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN');
+    const refreshTokenExpiresIn = this.configService.getOrThrow<string>(
+      'JWT_REFRESH_EXPIRES_IN',
+    );
 
     const expiresAt = new Date(
       Date.now() + this.parseDuration(refreshTokenExpiresIn),
@@ -205,5 +207,9 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async getMe(userId: string) {
+    return this.usersService.findById(userId);
   }
 }
