@@ -62,7 +62,7 @@ export class AuthService {
       pushToken: dto.pushToken,
     });
 
-    const tokens = await this.generateTokens(user.userId, user.email);
+    const tokens = await this.generateTokens(user.userId);
 
     // Refresh token'ın sadece HASH'ini DB'ye kaydet
     await this.saveRefreshToken(device.deviceId, tokens.refreshToken);
@@ -82,14 +82,12 @@ export class AuthService {
 
   async refresh(refreshToken: string) {
     let payload: {
-      sub: number;
-      email: string;
+      sub: string;
     };
 
     try {
       payload = await this.jwtService.verifyAsync<{
-        sub: number;
-        email: string;
+        sub: string;
       }>(refreshToken, {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       });
@@ -131,8 +129,7 @@ export class AuthService {
       },
     });
 
-    // Yeni tokenlar oluştur
-    const tokens = await this.generateTokens(payload.sub, payload.email);
+    const tokens = await this.generateTokens(payload.sub);
 
     // Yeni refresh tokenı DB'ye kaydet
     await this.saveRefreshToken(storedToken.deviceId, tokens.refreshToken);
@@ -199,10 +196,9 @@ export class AuthService {
     return value * multipliers[unit];
   }
 
-  private async generateTokens(userId: number, email: string) {
+  private async generateTokens(userId: string) {
     const payload = {
       sub: userId,
-      email,
     } as const;
 
     const accessToken = await this.jwtService.signAsync(payload);
