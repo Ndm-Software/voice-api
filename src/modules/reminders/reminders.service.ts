@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 
 @Injectable()
 export class RemindersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   async create(userId: string, dto: CreateReminderDto) {
     const reminder = await this.prisma.reminder.create({
@@ -17,7 +21,9 @@ export class RemindersService {
         description: dto.description?.trim(),
         eventDatetime: new Date(dto.eventDatetime),
         repeatType: dto.repeatType,
-        repeatUntil: dto.repeatUntil ? new Date(dto.repeatUntil) : undefined,
+        repeatUntil: dto.repeatUntil
+          ? new Date(dto.repeatUntil)
+          : undefined,
         status: 'ACTIVE',
         isUrgent: dto.isUrgent ?? false,
       },
@@ -44,6 +50,18 @@ export class RemindersService {
       });
     }
 
+    console.log(
+  'Scheduler çağrılacak. Reminder ID:',
+  reminder.reminderId,
+);
+    // Scheduler entegrasyonu:
+    // Reminder ve setting kayıtları oluşturulduktan sonra
+    // Redis/Bull joblarını planlar.
+    await this.schedulerService.scheduleReminder(
+      reminder.reminderId,
+    );
+
+    console.log('Scheduler çağrısı tamamlandı.');
     return this.findOne(userId, reminder.reminderId);
   }
 
@@ -62,26 +80,36 @@ export class RemindersService {
     });
   }
 
-  async findOne(userId: string, reminderId: string) {
-    const reminder = await this.prisma.reminder.findFirst({
-      where: {
-        reminderId,
-        userId,
-      },
-      include: {
-        pushNotifications: true,
-        voiceCallSettings: true,
-      },
-    });
+  async findOne(
+    userId: string,
+    reminderId: string,
+  ) {
+    const reminder =
+      await this.prisma.reminder.findFirst({
+        where: {
+          reminderId,
+          userId,
+        },
+        include: {
+          pushNotifications: true,
+          voiceCallSettings: true,
+        },
+      });
 
     if (!reminder) {
-      throw new NotFoundException('Hatırlatıcı bulunamadı.');
+      throw new NotFoundException(
+        'Hatırlatıcı bulunamadı.',
+      );
     }
 
     return reminder;
   }
 
-  async update(userId: string, reminderId: string, dto: UpdateReminderDto) {
+  async update(
+    userId: string,
+    reminderId: string,
+    dto: UpdateReminderDto,
+  ) {
     await this.findOne(userId, reminderId);
 
     await this.prisma.reminder.update({
@@ -106,7 +134,9 @@ export class RemindersService {
         }),
 
         ...(dto.repeatUntil !== undefined && {
-          repeatUntil: dto.repeatUntil ? new Date(dto.repeatUntil) : null,
+          repeatUntil: dto.repeatUntil
+            ? new Date(dto.repeatUntil)
+            : null,
         }),
 
         ...(dto.isUrgent !== undefined && {
@@ -115,11 +145,26 @@ export class RemindersService {
       },
     });
 
+    // Scheduler entegrasyonu:
+    // Reminder zamanı değişmiş olabilir.
+    // Eski jobları kaldırıp yeni zamana göre tekrar oluşturur.
+    await this.schedulerService.rescheduleReminder(
+      reminderId,
+    );
+
     return this.findOne(userId, reminderId);
   }
 
-  async remove(userId: string, reminderId: string) {
+  async remove(
+    userId: string,
+    reminderId: string,
+  ) {
     await this.findOne(userId, reminderId);
+
+    // Reminder silinmeden önce Redis'teki jobları kaldır.
+    await this.schedulerService.cancelReminderJobs(
+      reminderId,
+    );
 
     await this.prisma.reminder.delete({
       where: {
