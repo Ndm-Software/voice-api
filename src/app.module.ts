@@ -12,6 +12,7 @@ import { LanguagesModule } from './modules/languages/languages.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 import { VoiceCallModule } from './modules/voice-call/voice-call.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
+import { PushNotificationSettingsModule } from './modules/push-notification-settings/push-notification-settings.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RemindersModule } from './modules/reminders/reminders.module';
     VoiceCallModule,
     UserSettingsModule,
     RemindersModule,
+    PushNotificationSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

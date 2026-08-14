@@ -61,7 +61,7 @@ export class AuthService {
       pushToken: dto.pushToken,
     });
 
-    const tokens = await this.generateTokens(user.userId, user.email);
+    const tokens = await this.generateTokens(user.userId);
 
     await this.saveRefreshToken(device.deviceId, tokens.refreshToken);
 
@@ -81,13 +81,11 @@ export class AuthService {
   async refresh(refreshToken: string) {
     let payload: {
       sub: string;
-      email: string;
     };
 
     try {
       payload = await this.jwtService.verifyAsync<{
         sub: string;
-        email: string;
       }>(refreshToken, {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       });
@@ -127,7 +125,7 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.generateTokens(payload.sub, payload.email);
+    const tokens = await this.generateTokens(payload.sub);
 
     await this.saveRefreshToken(storedToken.deviceId, tokens.refreshToken);
 
@@ -156,7 +154,9 @@ export class AuthService {
   }
 
   private async saveRefreshToken(deviceId: string, refreshToken: string) {
-    const refreshTokenExpiresIn = this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN');
+    const refreshTokenExpiresIn = this.configService.getOrThrow<string>(
+      'JWT_REFRESH_EXPIRES_IN',
+    );
 
     const expiresAt = new Date(
       Date.now() + this.parseDuration(refreshTokenExpiresIn),
@@ -191,10 +191,9 @@ export class AuthService {
     return value * multipliers[unit];
   }
 
-  private async generateTokens(userId: string, email: string) {
+  private async generateTokens(userId: string) {
     const payload = {
       sub: userId,
-      email,
     } as const;
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -208,5 +207,9 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async getMe(userId: string) {
+    return this.usersService.findById(userId);
   }
 }

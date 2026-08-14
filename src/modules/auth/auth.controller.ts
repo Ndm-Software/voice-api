@@ -70,7 +70,7 @@ export class AuthController {
       ? authorization.substring(7)
       : undefined;
 
-    const refreshToken = 
+    const refreshToken =
       cookieRefreshToken || bodyRefreshToken || bearerRefreshToken;
 
     if (!refreshToken) {
@@ -124,6 +124,6 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@CurrentUser() user: AuthenticatedUser) {
-    return user;
+    return this.authService.getMe(user.userId);
   }
 }

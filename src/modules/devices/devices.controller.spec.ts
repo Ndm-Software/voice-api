@@ -49,9 +49,7 @@ describe('DevicesController', () => {
   it('passes the authenticated user id and validated DTO to the service', async () => {
     const user: AuthenticatedUser = {
       userId: '22222222-2222-4222-8222-222222222222',
-      email: 'user@example.com',
     };
-    const dto: RegisterDeviceDto = {
       installationId: '550e8400-e29b-41d4-a716-446655440000',
       platform: PlatformType.WINDOWS,
       deviceName: 'Office Desktop',
