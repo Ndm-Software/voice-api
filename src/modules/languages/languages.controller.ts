@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -29,7 +30,7 @@ export class LanguagesController {
   }
 
   @Get(':languageId')
-  findById(@Param('languageId') languageId: string) {
+  findById(@Param('languageId', ParseUUIDPipe) languageId: string) {
     return this.languagesService.findById(languageId);
   }
 
@@ -40,7 +41,7 @@ export class LanguagesController {
 
   @Patch(':languageId')
   update(
-    @Param('languageId') languageId: string,
+    @Param('languageId', ParseUUIDPipe) languageId: string,
     @Body() dto: UpdateLanguageDto,
   ) {
     return this.languagesService.update(
@@ -50,7 +51,7 @@ export class LanguagesController {
   }
 
   @Delete(':languageId')
-  remove(@Param('languageId') languageId: string) {
+  remove(@Param('languageId', ParseUUIDPipe) languageId: string) {
     return this.languagesService.remove(languageId);
   }
 }

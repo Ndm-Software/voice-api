@@ -29,18 +29,28 @@ export class ReminderHistoryService {
     });
   }
 
-  async findAll(reminderId?: string) {
+  async findAll(userId: string, reminderId?: string) {
     return this.prisma.reminderHistory.findMany({
-      where: reminderId ? { reminderId } : undefined,
+      where: {
+        ...(reminderId && { reminderId }),
+        reminder: {
+          userId,
+        },
+      },
       orderBy: {
         sentAt: 'desc',
       },
     });
   }
 
-  async findOne(historyId: string) {
-    const history = await this.prisma.reminderHistory.findUnique({
-      where: { historyId },
+  async findOne(userId: string, historyId: string) {
+    const history = await this.prisma.reminderHistory.findFirst({
+      where: {
+        historyId,
+        reminder: {
+          userId,
+        },
+      },
     });
 
     if (!history) {
@@ -55,7 +65,15 @@ export class ReminderHistoryService {
     status: HistoryStatus,
     errorMessage?: string,
   ) {
-    const history = await this.findOne(historyId);
+    // Not: Background processor'lar çalıştırırken userId bilmeyebilir,
+    // bu nedenle updateStatus kendi içinde findUnique kullanmaya devam edebilir.
+    const history = await this.prisma.reminderHistory.findUnique({
+      where: { historyId },
+    });
+
+    if (!history) {
+      throw new NotFoundException('Reminder history not found.');
+    }
 
     return this.prisma.reminderHistory.update({
       where: {
@@ -69,11 +87,11 @@ export class ReminderHistoryService {
     });
   }
 
-  async remove(historyId: string) {
-    await this.findOne(historyId);
+  async remove(userId: string, historyId: string) {
+    const history = await this.findOne(userId, historyId);
 
     return this.prisma.reminderHistory.delete({
-      where: { historyId },
+      where: { historyId: history.historyId },
     });
   }
 }

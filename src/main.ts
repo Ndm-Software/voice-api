@@ -1,7 +1,8 @@
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
+import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
 import { createCorsOptions } from './common/config/cors.config';
@@ -24,6 +25,10 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      // Testin beklediği nesne tabanlı hata yapısını doğrudan dışarı aktarıyoruz:
+      exceptionFactory: (errors: ValidationError[]) => {
+        return new BadRequestException(errors);
+      },
     }),
   );
 
