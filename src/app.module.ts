@@ -14,6 +14,7 @@ import { VoiceCallModule } from './modules/voice-call/voice-call.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { PushNotificationSettingsModule } from './modules/push-notification-settings/push-notification-settings.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { ReminderHistoryModule } from './modules/reminder-history/reminder-history.module';
 
 @Module({
   imports: [
@@ -29,8 +30,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     VoiceCallModule,
     UserSettingsModule,
     RemindersModule,
+    ReminderHistoryModule,
     PushNotificationSettingsModule,
-    SchedulerModule
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
