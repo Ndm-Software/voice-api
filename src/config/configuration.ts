@@ -33,7 +33,7 @@ export const configuration = () => ({
     accountSid: process.env.TWILIO_ACCOUNT_SID,
     authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER,
-    twimlBinUrl: process.env.TWIML_BIN_URL,
+    twimlUrl: process.env.TWILIO_TWIML_URL,
     verifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID,
   },
 });

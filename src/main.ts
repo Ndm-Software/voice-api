@@ -1,8 +1,9 @@
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
 import { createCorsOptions } from './common/config/cors.config';
@@ -30,6 +31,12 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      validationError: {
+        target: false,
+        value: false,
+      },
+      exceptionFactory: (errors: ValidationError[]) =>
+        new BadRequestException(errors),
     }),
   );
 

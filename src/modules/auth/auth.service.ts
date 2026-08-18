@@ -306,9 +306,17 @@ export class AuthService {
     const tokenHash = hashToken(refreshToken);
 
     await this.prisma.$transaction(async (transaction) => {
+      const now = new Date();
       const storedToken = await transaction.refreshToken.findFirst({
         where: {
           tokenHash,
+          revokedAt: null,
+          expiresAt: {
+            gt: now,
+          },
+          device: {
+            isActive: true,
+          },
         },
         select: {
           deviceId: true,
@@ -331,7 +339,7 @@ export class AuthService {
         transaction,
         storedToken.device.userId,
         storedToken.deviceId,
-        new Date(),
+        now,
       );
     });
 

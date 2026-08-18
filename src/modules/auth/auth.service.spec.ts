@@ -41,6 +41,19 @@ type RefreshTokenUpdateManyInput = {
   };
 };
 
+type RefreshTokenFindFirstInput = {
+  where: {
+    tokenHash: string;
+    revokedAt: null;
+    expiresAt: {
+      gt: Date;
+    };
+    device: {
+      isActive: boolean;
+    };
+  };
+};
+
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: {
@@ -689,6 +702,23 @@ describe('AuthService', () => {
       message: 'Logout successful.',
     });
 
+    const findFirstCalls = refreshToken.findFirst.mock
+      .calls as unknown as Array<[RefreshTokenFindFirstInput]>;
+    const findFirstInput = findFirstCalls[0][0];
+    expect(findFirstInput.where).toEqual({
+      tokenHash: createHash('sha256')
+        .update('old-refresh-token', 'utf8')
+        .digest('hex'),
+      revokedAt: null,
+      expiresAt: {
+        gt: findFirstInput.where.expiresAt.gt,
+      },
+      device: {
+        isActive: true,
+      },
+    });
+    expect(findFirstInput.where.expiresAt.gt).toBeInstanceOf(Date);
+
     const updateManyCalls = refreshToken.updateMany.mock
       .calls as unknown as Array<[RefreshTokenUpdateManyInput]>;
     const revokeInput = updateManyCalls[0][0];
@@ -708,6 +738,23 @@ describe('AuthService', () => {
         pushTokenHash: null,
       },
     });
+  });
+
+  it('does not revoke a reactivated device for an inactive logout token', async () => {
+    refreshToken.findFirst.mockResolvedValue(null);
+
+    await expect(service.logout('old-refresh-token')).resolves.toEqual({
+      message: 'Logout successful.',
+    });
+
+    const findFirstCalls = refreshToken.findFirst.mock
+      .calls as unknown as Array<[RefreshTokenFindFirstInput]>;
+    const findFirstInput = findFirstCalls[0][0];
+    expect(findFirstInput.where.revokedAt).toBeNull();
+    expect(findFirstInput.where.expiresAt.gt).toBeInstanceOf(Date);
+    expect(findFirstInput.where.device).toEqual({ isActive: true });
+    expect(refreshToken.updateMany).not.toHaveBeenCalled();
+    expect(deviceUpdateMany).not.toHaveBeenCalled();
   });
 
   it.each([{}, { sub: 42 }, { sub: '42' }, { sub: 'not-a-uuid' }])(

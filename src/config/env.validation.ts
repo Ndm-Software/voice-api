@@ -16,7 +16,7 @@ const requiredStringVariables = [
   'TWILIO_ACCOUNT_SID',
   'TWILIO_AUTH_TOKEN',
   'TWILIO_PHONE_NUMBER',
-  'TWIML_BIN_URL',
+  'TWILIO_TWIML_URL',
 ] as const;
 
 const durationPattern = /^\d+\s*(s|m|h|d)$/;
@@ -247,12 +247,12 @@ export const validateEnvironment = (
     errors.push('TWILIO_PHONE_NUMBER must use E.164 format');
   }
 
-  const twimlBinUrl = config.TWIML_BIN_URL;
+  const twimlUrl = config.TWILIO_TWIML_URL;
   if (
-    typeof twimlBinUrl === 'string' &&
-    !isUrlWithProtocol(twimlBinUrl, ['https:'])
+    typeof twimlUrl === 'string' &&
+    !isUrlWithProtocol(twimlUrl, ['https:'])
   ) {
-    errors.push('TWIML_BIN_URL must be an HTTPS URL');
+    errors.push('TWILIO_TWIML_URL must be an HTTPS URL');
   }
 
   if (errors.length > 0) {

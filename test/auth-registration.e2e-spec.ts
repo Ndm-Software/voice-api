@@ -1,9 +1,14 @@
 import { Server } from 'node:http';
 
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  INestApplication,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { ValidationError } from 'class-validator';
 import request from 'supertest';
 
 import { AuthController } from '../src/modules/auth/auth.controller';
@@ -22,6 +27,35 @@ import { PrismaService } from '../src/prisma/prisma.service';
 
 const isHttpServer = (value: unknown): value is Server =>
   value instanceof Server;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const readValidationErrors = (body: unknown): Record<string, unknown>[] => {
+  if (
+    !isRecord(body) ||
+    !Array.isArray(body.message) ||
+    !body.message.every(isRecord)
+  ) {
+    throw new Error('Validation response body is invalid');
+  }
+
+  return body.message;
+};
+
+const expectUnexpectedPropertyError = (
+  errors: Record<string, unknown>[],
+): void => {
+  const error = errors.find((item) => item.property === 'unexpected');
+
+  if (!error || !isRecord(error.constraints)) {
+    throw new Error('Unexpected property validation error is missing');
+  }
+
+  expect(error.constraints.whitelistValidation).toBe(
+    'property unexpected should not exist',
+  );
+};
 
 class ControllableFakeOtpProvider extends FakeOtpProvider {
   rejectRequests = false;
@@ -150,6 +184,12 @@ describe('Auth registration flow', () => {
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        validationError: {
+          target: false,
+          value: false,
+        },
+        exceptionFactory: (errors: ValidationError[]) =>
+          new BadRequestException(errors),
       }),
     );
     await app.init();
@@ -237,21 +277,34 @@ describe('Auth registration flow', () => {
         .send({ unexpected: true })
         .expect(400);
 
-      const responseBody = response.body as unknown;
-
-      if (
-        typeof responseBody !== 'object' ||
-        responseBody === null ||
-        !('message' in responseBody)
-      ) {
-        throw new Error('Validation response body is invalid');
-      }
-
-      expect(responseBody.message).toContain(
-        'property unexpected should not exist',
+      expectUnexpectedPropertyError(
+        readValidationErrors(response.body as unknown),
       );
     },
   );
+
+  it('preserves validation errors without echoing registration secrets', async () => {
+    const password = 'password-that-must-not-leak';
+    const response = await request(httpServer)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'user@example.com',
+        phoneNumber: '05551112233',
+        password,
+        unexpected: password,
+      })
+      .expect(400);
+    const responseBody = response.body as unknown;
+    const validationErrors = readValidationErrors(responseBody);
+    const serializedResponse = JSON.stringify(responseBody);
+
+    expect(serializedResponse).not.toContain(password);
+    expect(serializedResponse).not.toContain('"target"');
+    expect(serializedResponse).not.toContain('"value"');
+    expectUnexpectedPropertyError(validationErrors);
+  });
 
   it.each([
     {
