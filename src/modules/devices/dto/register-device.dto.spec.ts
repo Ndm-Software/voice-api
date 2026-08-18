@@ -104,7 +104,7 @@ describe('RegisterDeviceDto', () => {
         installationId: '550e8400-e29b-41d4-a716-446655440000',
         platform: 'IOS',
         deviceName: 'iPhone',
-        userId: 42,
+        userId: '22222222-2222-4222-8222-222222222222',
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });

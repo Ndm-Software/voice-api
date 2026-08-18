@@ -20,6 +20,7 @@ export interface CreateUserData {
   email: string;
   phoneNumber: string;
   passwordHash: string;
+  phoneVerified?: boolean;
 }
 
 /**
@@ -121,16 +122,30 @@ export class UsersService {
       );
     }
 
-    return this.prisma.user.create({
-      data: {
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        email: normalizedEmail,
-        phoneNumber: normalizedPhoneNumber,
-        passwordHash: data.passwordHash,
-      },
-      select: safeUserSelect,
-    });
+    try {
+      return await this.prisma.user.create({
+        data: {
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: normalizedEmail,
+          phoneNumber: normalizedPhoneNumber,
+          passwordHash: data.passwordHash,
+          phoneVerified: data.phoneVerified ?? false,
+        },
+        select: safeUserSelect,
+      });
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'Bu e-posta adresi veya telefon numarası kullanılıyor.',
+        );
+      }
+
+      throw error;
+    }
   }
 
   /**

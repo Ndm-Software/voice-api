@@ -34,8 +34,12 @@ describe('DevicesController (e2e)', () => {
   let registerOrUpdate: jest.MockedFunction<DevicesService['registerOrUpdate']>;
 
   beforeAll(async () => {
-    findAllForUser = jest.fn() as jest.MockedFunction<DevicesService['findAllForUser']>;
-    registerOrUpdate = jest.fn() as jest.MockedFunction<DevicesService['registerOrUpdate']>;
+    findAllForUser = jest.fn() as jest.MockedFunction<
+      DevicesService['findAllForUser']
+    >;
+    registerOrUpdate = jest.fn() as jest.MockedFunction<
+      DevicesService['registerOrUpdate']
+    >;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [

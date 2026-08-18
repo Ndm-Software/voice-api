@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ApplicationConfigModule } from './config/config.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DevicesModule } from './modules/devices/devices.module';
 import { UsersModule } from './modules/users/users.module';
@@ -13,12 +13,11 @@ import { UserSettingsModule } from './modules/user-settings/user-settings.module
 import { VoiceCallModule } from './modules/voice-call/voice-call.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { PushNotificationSettingsModule } from './modules/push-notification-settings/push-notification-settings.module';
+import { OtpModule } from './modules/otp/otp.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ApplicationConfigModule,
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -29,6 +28,7 @@ import { PushNotificationSettingsModule } from './modules/push-notification-sett
     UserSettingsModule,
     RemindersModule,
     PushNotificationSettingsModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
