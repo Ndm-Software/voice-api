@@ -27,8 +27,12 @@ describe('DevicesController', () => {
   let controller: DevicesController;
 
   beforeEach(() => {
-    registerOrUpdate = jest.fn() as jest.MockedFunction<DevicesService['registerOrUpdate']>;
-    findAllForUser = jest.fn() as jest.MockedFunction<DevicesService['findAllForUser']>;
+    registerOrUpdate = jest.fn() as jest.MockedFunction<
+      DevicesService['registerOrUpdate']
+    >;
+    findAllForUser = jest.fn() as jest.MockedFunction<
+      DevicesService['findAllForUser']
+    >;
     controller = new DevicesController({
       findAllForUser,
       registerOrUpdate,

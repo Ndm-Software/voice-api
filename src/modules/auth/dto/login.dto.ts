@@ -2,11 +2,11 @@ import { Transform, TransformFnParams } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
+  IsOptional,
   IsString,
   IsUUID,
   MaxLength,
   MinLength,
-  ValidateIf,
 } from 'class-validator';
 
 import {
@@ -25,9 +25,6 @@ const normalizeUuid = ({ value }: TransformFnParams): unknown => {
 
   return typeof input === 'string' ? input.trim().toLowerCase() : input;
 };
-
-const isDefined = (_object: unknown, value: unknown): boolean =>
-  value !== undefined;
 
 export class LoginDto {
   @Transform(trimString)
@@ -51,10 +48,10 @@ export class LoginDto {
   @MaxLength(100)
   deviceName: string;
 
-  @ValidateIf(isDefined)
+  @IsOptional()
   @Transform(trimString)
   @IsString()
   @MinLength(1)
   @MaxLength(4096)
-  pushToken?: string;
+  pushToken?: string | null;
 }

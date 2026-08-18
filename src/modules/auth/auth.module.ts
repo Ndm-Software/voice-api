@@ -10,6 +10,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { DevicesModule } from '../devices/devices.module';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { RedisIntegrationModule } from '../../integrations/redis/redis-integration.module';
+import { OtpModule } from '../otp/otp.module';
+import { PendingRegistrationStore } from './pending-registration.store';
 
 @Module({
   imports: [
@@ -17,6 +20,8 @@ import { PrismaModule } from '../../prisma/prisma.module';
     PrismaModule,
     UsersModule,
     DevicesModule,
+    RedisIntegrationModule,
+    OtpModule,
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -32,6 +37,6 @@ import { PrismaModule } from '../../prisma/prisma.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PendingRegistrationStore],
 })
 export class AuthModule {}

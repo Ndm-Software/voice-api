@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,7 +23,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: { sub: string; deviceId?: string }) {
+  validate(payload: { sub?: unknown; deviceId?: unknown }) {
+    if (typeof payload.sub !== 'string' || !isUUID(payload.sub, '4')) {
+      throw new UnauthorizedException('Invalid access token.');
+    }
+
+    if (
+      payload.deviceId !== undefined &&
+      (typeof payload.deviceId !== 'string' || !isUUID(payload.deviceId, '4'))
+    ) {
+      throw new UnauthorizedException('Invalid access token.');
+    }
+
     return {
       userId: payload.sub,
       deviceId: payload.deviceId,
