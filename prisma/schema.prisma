@@ -224,6 +224,16 @@ model VoiceCallSetting {
   @@map("voice_call_settings")
 }
 
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model SilentHour {
   silentHourId String @id @default(uuid()) @map("silent_hour_id") @db.Uuid
   userId       String @map("user_id") @db.Uuid
@@ -238,14 +248,4 @@ model SilentHour {
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("silent_hours")
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
 }

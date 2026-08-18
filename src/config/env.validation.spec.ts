@@ -32,6 +32,8 @@ describe('validateEnvironment', () => {
     });
 
     expect(result.REDIS_URL).toBe('redis://localhost:6379');
+    expect(result.REDIS_HOST).toBe('localhost');
+    expect(result.REDIS_PORT).toBe(6379);
     expect(result.OTP_PENDING_REGISTRATION_TTL_SECONDS).toBe(600);
     expect(result.PORT).toBe(3001);
     expect(result.TRUST_PROXY_HOPS).toBe(0);
@@ -88,6 +90,11 @@ describe('validateEnvironment', () => {
     ],
     ['REDIS_URL', 'http://localhost:6379', 'REDIS_URL must be a Redis URL'],
     [
+      'REDIS_PORT',
+      '70000',
+      'REDIS_PORT must be an integer between 1 and 65535',
+    ],
+    [
       'JWT_ACCESS_EXPIRES_IN',
       '15 minutes',
       'JWT_ACCESS_EXPIRES_IN must use s, m, h, or d units',
@@ -131,6 +138,17 @@ describe('validateEnvironment', () => {
     ).toThrow(
       'OTP_RESEND_COOLDOWN_SECONDS must not exceed OTP_PENDING_REGISTRATION_TTL_SECONDS',
     );
+  });
+
+  it('normalizes explicit scheduler Redis connection values', () => {
+    const result = validateEnvironment({
+      ...validEnvironment,
+      REDIS_HOST: ' redis ',
+      REDIS_PORT: '6380',
+    });
+
+    expect(result.REDIS_HOST).toBe('redis');
+    expect(result.REDIS_PORT).toBe(6380);
   });
 
   it('uses safe fake-provider defaults outside production', () => {

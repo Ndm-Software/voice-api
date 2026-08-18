@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -39,14 +40,17 @@ export class PushNotificationSettingsController {
   }
 
   @Get(':id')
-  findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') pushId: string) {
+  findOne(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) pushId: string,
+  ) {
     return this.pushNotificationSettingsService.findOne(user.userId, pushId);
   }
 
   @Patch(':id')
   update(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') pushId: string,
+    @Param('id', ParseUUIDPipe) pushId: string,
     @Body() dto: UpdatePushNotificationSettingDto,
   ) {
     return this.pushNotificationSettingsService.update(
@@ -57,7 +61,10 @@ export class PushNotificationSettingsController {
   }
 
   @Delete(':id')
-  remove(@CurrentUser() user: AuthenticatedUser, @Param('id') pushId: string) {
+  remove(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) pushId: string,
+  ) {
     return this.pushNotificationSettingsService.remove(user.userId, pushId);
   }
 }

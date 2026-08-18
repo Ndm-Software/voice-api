@@ -14,16 +14,18 @@ export class VoiceCallService {
     );
   }
 
-  async makeCall(to: string) {
+  async makeCall(to: string, message: string) {
     try {
       const from = this.configService.getOrThrow<string>('TWILIO_PHONE_NUMBER');
-      const twimlBinUrl =
-        this.configService.getOrThrow<string>('TWIML_BIN_URL');
+
+      const twimlUrl =
+        this.configService.getOrThrow<string>('TWILIO_TWIML_URL');
 
       const call = await this.client.calls.create({
         to,
         from,
-        url: twimlBinUrl,
+        url: `${twimlUrl}?message=${encodeURIComponent(message)}`,
+        method: 'GET',
       });
 
       this.logger.log(`Voice call created: ${call.sid}`);
@@ -35,6 +37,7 @@ export class VoiceCallService {
       };
     } catch (error: any) {
       this.logger.error(`Twilio Arama Hatasi: ${error.message}`);
+
       return {
         success: false,
         error: error.message,

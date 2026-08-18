@@ -162,11 +162,37 @@ export const validateEnvironment = (
   }
 
   const redisUrl = config.REDIS_URL;
+  let parsedRedisUrl: URL | undefined;
+
   if (
     typeof redisUrl === 'string' &&
     !isUrlWithProtocol(redisUrl, ['redis:', 'rediss:'])
   ) {
     errors.push('REDIS_URL must be a Redis URL');
+  } else if (typeof redisUrl === 'string') {
+    parsedRedisUrl = new URL(redisUrl);
+  }
+
+  const redisHost =
+    typeof config.REDIS_HOST === 'string'
+      ? config.REDIS_HOST.trim()
+      : (parsedRedisUrl?.hostname ?? '');
+
+  if (redisHost.length === 0) {
+    errors.push('REDIS_HOST is required');
+  } else {
+    config.REDIS_HOST = redisHost;
+  }
+
+  const redisPort =
+    config.REDIS_PORT === undefined
+      ? Number(parsedRedisUrl?.port || 6379)
+      : Number(config.REDIS_PORT);
+
+  if (!Number.isInteger(redisPort) || redisPort < 1 || redisPort > 65535) {
+    errors.push('REDIS_PORT must be an integer between 1 and 65535');
+  } else {
+    config.REDIS_PORT = redisPort;
   }
 
   for (const variableName of positiveIntegerVariables) {
