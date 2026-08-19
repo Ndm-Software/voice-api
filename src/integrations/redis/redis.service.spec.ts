@@ -5,6 +5,7 @@ describe('RedisService', () => {
     isOpen: boolean;
     connect: jest.Mock;
     quit: jest.Mock;
+    ping: jest.Mock;
     set: jest.Mock;
     get: jest.Mock;
     del: jest.Mock;
@@ -17,6 +18,7 @@ describe('RedisService', () => {
       isOpen: false,
       connect: jest.fn().mockResolvedValue(undefined),
       quit: jest.fn().mockResolvedValue(undefined),
+      ping: jest.fn().mockResolvedValue('PONG'),
       set: jest.fn().mockResolvedValue('OK'),
       get: jest.fn(),
       del: jest.fn().mockResolvedValue(1),
@@ -48,6 +50,11 @@ describe('RedisService', () => {
     await service.onApplicationShutdown();
 
     expect(client.quit).not.toHaveBeenCalled();
+  });
+
+  it('checks Redis connectivity without reading application data', async () => {
+    await expect(service.ping()).resolves.toBe('PONG');
+    expect(client.ping).toHaveBeenCalledTimes(1);
   });
 
   it('uses an expiring Redis value', async () => {

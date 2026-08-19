@@ -32,6 +32,10 @@ export class RedisService implements OnModuleInit, OnApplicationShutdown {
     }
   }
 
+  ping(): Promise<string> {
+    return this.client.ping();
+  }
+
   async setWithExpiry(
     key: string,
     value: string,

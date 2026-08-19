@@ -2,6 +2,7 @@ export interface RedisClient {
   readonly isOpen: boolean;
   connect(): Promise<unknown>;
   quit(): Promise<unknown>;
+  ping(): Promise<string>;
   set(
     key: string,
     value: string,
