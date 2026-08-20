@@ -11,6 +11,7 @@ import type {
 } from './polly.types';
 
 export const POLLY_AUDIO_CONTENT_TYPE = 'audio/mpeg' as const;
+export const POLLY_CLIENT = Symbol('POLLY_CLIENT');
 
 export const POLLY_VOICE_CONFIGURATIONS: Readonly<
   Record<SupportedPollyLanguage, PollyVoiceConfiguration>
