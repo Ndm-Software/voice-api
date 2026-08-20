@@ -11,6 +11,7 @@ describe('createPollyClient', () => {
 
     expect(client).toBeInstanceOf(PollyClient);
     await expect(client.config.region()).resolves.toBe('eu-central-1');
+    await expect(client.config.maxAttempts()).resolves.toBe(3);
     expect(getOrThrow).toHaveBeenCalledWith('aws.region');
 
     client.destroy();

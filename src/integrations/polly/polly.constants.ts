@@ -12,6 +12,9 @@ import type {
 
 export const POLLY_AUDIO_CONTENT_TYPE = 'audio/mpeg' as const;
 export const POLLY_CLIENT = Symbol('POLLY_CLIENT');
+export const POLLY_MAX_ATTEMPTS = 3;
+export const POLLY_MAX_TEXT_LENGTH = 3000;
+export const POLLY_REQUEST_TIMEOUT_MS = 10_000;
 
 export const POLLY_VOICE_CONFIGURATIONS: Readonly<
   Record<SupportedPollyLanguage, PollyVoiceConfiguration>
