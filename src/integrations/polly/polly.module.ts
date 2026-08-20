@@ -9,6 +9,7 @@ import { PollyClient } from '@aws-sdk/client-polly';
 
 import { pollyClientProvider } from './polly-client.provider';
 import { POLLY_CLIENT } from './polly.constants';
+import { PollyService } from './polly.service';
 
 @Injectable()
 class PollyClientLifecycle implements OnModuleDestroy {
@@ -21,6 +22,7 @@ class PollyClientLifecycle implements OnModuleDestroy {
 
 @Module({
   imports: [ConfigModule],
-  providers: [pollyClientProvider, PollyClientLifecycle],
+  providers: [pollyClientProvider, PollyClientLifecycle, PollyService],
+  exports: [PollyService],
 })
 export class PollyModule {}
