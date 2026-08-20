@@ -2,7 +2,7 @@ import { BadRequestException,Injectable, NotFoundException } from '@nestjs/commo
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { SchedulerService } from '../../scheduler/scheduler.service';
-import { TimezoneService } from '../timezone/timezone.service';
+import { TimezoneService } from '../../common/services/timezone.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 
