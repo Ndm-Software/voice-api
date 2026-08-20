@@ -20,8 +20,8 @@ const validEnvironment = {
   TWILIO_ACCOUNT_SID: `AC${'0'.repeat(32)}`,
   TWILIO_AUTH_TOKEN: 'twilio-auth-token',
   TWILIO_PHONE_NUMBER: '+10000000000',
-  TWILIO_TWIML_URL:
-    'https://handler.twilio.com/twiml/EH00000000000000000000000000000000',
+  TWILIO_VOICE_MEDIA_BASE_URL: 'https://api.example.com/api/voice-call/media',
+  AWS_REGION: 'eu-central-1',
 };
 
 describe('validateEnvironment', () => {
@@ -110,9 +110,9 @@ describe('validateEnvironment', () => {
       'TWILIO_PHONE_NUMBER must use E.164 format',
     ],
     [
-      'TWILIO_TWIML_URL',
-      'http://handler.twilio.com/twiml/test',
-      'TWILIO_TWIML_URL must be an HTTPS URL',
+      'TWILIO_VOICE_MEDIA_BASE_URL',
+      'http://api.example.com/api/voice-call/media',
+      'TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL',
     ],
     [
       'OTP_MAX_VERIFY_ATTEMPTS',
@@ -268,6 +268,13 @@ describe('validateEnvironment', () => {
     expect(result.AWS_SECRET_ACCESS_KEY).toBeUndefined();
   });
 
+  it('requires an AWS region for the configured Polly integration', () => {
+    const input: Record<string, unknown> = { ...validEnvironment };
+    delete input.AWS_REGION;
+
+    expect(() => validateEnvironment(input)).toThrow('AWS_REGION is required');
+  });
+
   it('normalizes complete Firebase and static AWS configuration', () => {
     const result = validateEnvironment({
       ...validEnvironment,
@@ -322,13 +329,14 @@ describe('validateEnvironment', () => {
   });
 
   it('requires an AWS region with static credentials', () => {
-    expect(() =>
-      validateEnvironment({
-        ...validEnvironment,
-        AWS_ACCESS_KEY_ID: 'access-key',
-        AWS_SECRET_ACCESS_KEY: 'secret-key',
-      }),
-    ).toThrow(
+    const input: Record<string, unknown> = {
+      ...validEnvironment,
+      AWS_ACCESS_KEY_ID: 'access-key',
+      AWS_SECRET_ACCESS_KEY: 'secret-key',
+    };
+    delete input.AWS_REGION;
+
+    expect(() => validateEnvironment(input)).toThrow(
       'AWS_REGION is required when static AWS credentials are provided',
     );
   });

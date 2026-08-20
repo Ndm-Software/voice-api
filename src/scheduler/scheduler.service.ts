@@ -4,7 +4,11 @@ import { Queue } from 'bull';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { JOB_NAMES, QUEUE_NAMES } from './constants/queue.constants';
+import {
+  JOB_NAMES,
+  QUEUE_NAMES,
+  VOICE_JOB_STATE_PREFIXES,
+} from './constants/queue.constants';
 
 @Injectable()
 export class SchedulerService {
@@ -117,7 +121,9 @@ export class SchedulerService {
         continue;
       }
 
-      const job = await this.voiceCallQueue.getJob(voiceSetting.jobId);
+      const job = await this.voiceCallQueue.getJob(
+        this.getVoiceQueueJobId(voiceSetting.jobId),
+      );
 
       if (job) {
         await job.remove();
@@ -177,6 +183,7 @@ export class SchedulerService {
     minutesBefore: number,
   ) {
     const delay = this.calculateDelay(eventDatetime, minutesBefore);
+    const executionTime = eventDatetime.getTime() - minutesBefore * 60 * 1000;
     this.logger.log(
       `Voice job planlanıyor. Event: ${eventDatetime.toISOString()}, minutesBefore: ${minutesBefore}`,
     );
@@ -189,7 +196,7 @@ export class SchedulerService {
       return;
     }
 
-    const jobId = `voice-${callId}`;
+    const jobId = `voice-${callId}-${executionTime}`;
 
     const job = await this.voiceCallQueue.add(
       JOB_NAMES.MAKE_VOICE_CALL,
@@ -201,6 +208,13 @@ export class SchedulerService {
       {
         jobId,
         delay,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
       },
     );
 
@@ -220,5 +234,15 @@ export class SchedulerService {
     const executionTime = eventDatetime.getTime() - minutesBefore * 60 * 1000;
 
     return executionTime - Date.now();
+  }
+
+  private getVoiceQueueJobId(storedJobId: string): string {
+    for (const prefix of Object.values(VOICE_JOB_STATE_PREFIXES)) {
+      if (storedJobId.startsWith(prefix)) {
+        return storedJobId.slice(prefix.length);
+      }
+    }
+
+    return storedJobId;
   }
 }

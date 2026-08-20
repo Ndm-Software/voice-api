@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { PollyModule } from '../integrations/polly/polly.module';
 import { SchedulerService } from './scheduler.service';
 import { PushNotificationModule } from '../modules/push-notification/push-notification.module';
 import { PushNotificationProcessor } from './processors/push-notification.processor';
@@ -14,6 +15,7 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [
     ConfigModule,
     PrismaModule,
+    PollyModule,
     VoiceCallModule,
     PushNotificationModule,
 
@@ -24,9 +26,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.getOrThrow<string>('REDIS_HOST'),
-          port: Number(
-            configService.getOrThrow<string>('REDIS_PORT'),
-          ),
+          port: Number(configService.getOrThrow<string>('REDIS_PORT')),
         },
       }),
     }),
@@ -41,11 +41,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     ),
   ],
 
-  providers: [
-    SchedulerService,
-    PushNotificationProcessor,
-    VoiceCallProcessor,
-  ],
+  providers: [SchedulerService, PushNotificationProcessor, VoiceCallProcessor],
 
   exports: [SchedulerService],
 })

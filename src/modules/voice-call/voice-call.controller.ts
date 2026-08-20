@@ -1,37 +1,33 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Controller, Get, Param, Res } from '@nestjs/common';
 import { Response } from 'express';
-import twilio from 'twilio';
 
+import { Public } from '../../common/decorators/public.decorator';
 import { VoiceCallService } from './voice-call.service';
 
 @Controller('voice-call')
 export class VoiceCallController {
   constructor(private readonly voiceCallService: VoiceCallService) {}
 
-  @Post('test')
-  async testCall(
-    @Body()
-    body: {
-      to: string;
-      message: string;
-    },
-  ) {
-    return this.voiceCallService.makeCall(body.to, body.message);
-  }
+  @Public()
+  @Get('media/:token')
+  async getVoiceMedia(
+    @Param('token') token: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const audio = await this.voiceCallService.getVoiceMedia(token);
 
-  @Get('twiml')
-  twiml(@Query('message') message: string, @Res() res: Response) {
-    const twiml = new twilio.twiml.VoiceResponse();
+    if (!audio) {
+      response.status(404).end();
+      return;
+    }
 
-    twiml.say(
-      {
-        language: 'tr-TR',
-        voice: 'alice',
-      },
-      message || 'Hatırlatıcınız var.',
-    );
-
-    res.type('text/xml');
-    res.send(twiml.toString());
+    response
+      .status(200)
+      .set({
+        'Cache-Control': 'private, no-store, max-age=0',
+        'Content-Length': String(audio.byteLength),
+        'Content-Type': 'audio/mpeg',
+      })
+      .send(audio);
   }
 }

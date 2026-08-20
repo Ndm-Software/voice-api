@@ -16,7 +16,8 @@ const requiredStringVariables = [
   'TWILIO_ACCOUNT_SID',
   'TWILIO_AUTH_TOKEN',
   'TWILIO_PHONE_NUMBER',
-  'TWILIO_TWIML_URL',
+  'TWILIO_VOICE_MEDIA_BASE_URL',
+  'AWS_REGION',
 ] as const;
 
 const durationPattern = /^\d+\s*(s|m|h|d)$/;
@@ -347,12 +348,12 @@ export const validateEnvironment = (
     errors.push('TWILIO_PHONE_NUMBER must use E.164 format');
   }
 
-  const twimlUrl = config.TWILIO_TWIML_URL;
+  const voiceMediaBaseUrl = config.TWILIO_VOICE_MEDIA_BASE_URL;
   if (
-    typeof twimlUrl === 'string' &&
-    !isUrlWithProtocol(twimlUrl, ['https:'])
+    typeof voiceMediaBaseUrl === 'string' &&
+    !isUrlWithProtocol(voiceMediaBaseUrl, ['https:'])
   ) {
-    errors.push('TWILIO_TWIML_URL must be an HTTPS URL');
+    errors.push('TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL');
   }
 
   if (errors.length > 0) {

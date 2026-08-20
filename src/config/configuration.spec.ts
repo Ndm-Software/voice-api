@@ -3,7 +3,7 @@ import { configuration } from './configuration';
 describe('configuration', () => {
   const managedVariables = [
     'NODE_ENV',
-    'TWILIO_TWIML_URL',
+    'TWILIO_VOICE_MEDIA_BASE_URL',
     'REDIS_URL',
     'REDIS_HOST',
     'REDIS_PORT',
@@ -39,10 +39,13 @@ describe('configuration', () => {
     expect(configuration().app.environment).toBe('production');
   });
 
-  it('uses the Voice Call TwiML environment contract', () => {
-    process.env.TWILIO_TWIML_URL = 'https://example.com/twiml';
+  it('uses the Voice Call media environment contract', () => {
+    process.env.TWILIO_VOICE_MEDIA_BASE_URL =
+      ' https://api.example.com/api/voice-call/media ';
 
-    expect(configuration().twilio.twimlUrl).toBe('https://example.com/twiml');
+    expect(configuration().twilio.voiceMediaBaseUrl).toBe(
+      'https://api.example.com/api/voice-call/media',
+    );
   });
 
   it('derives the scheduler Redis connection from the shared URL', () => {

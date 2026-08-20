@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-
+import { TwilioIntegrationModule } from '../../integrations/twilio/twilio-integration.module';
 import { VoiceCallController } from './voice-call.controller';
 import { VoiceCallService } from './voice-call.service';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [TwilioIntegrationModule],
   controllers: [VoiceCallController],
   providers: [VoiceCallService],
   exports: [VoiceCallService],
