@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException,Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { SchedulerService } from '../../scheduler/scheduler.service';
-
+import { TimezoneService } from '../timezone/timezone.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 
@@ -11,9 +11,61 @@ export class RemindersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly schedulerService: SchedulerService,
+    private readonly timezoneService: TimezoneService,
   ) {}
 
   async create(userId: string, dto: CreateReminderDto) {
+     /*
+     * Kullanıcının timezone bilgisini alıyoruz.
+     */  
+    const userSettings =
+      await this.prisma.userSetting.findUnique({
+        where: {
+          userId,
+        },
+        select: {
+          timezone: true,
+        },
+      });
+
+    if (!userSettings) {
+      throw new BadRequestException(
+        'Hatırlatıcı oluşturmak için kullanıcı timezone ayarı gereklidir.',
+      );
+    }
+
+     /*
+     * Frontend'den gelen local tarihi
+     * kullanıcının timezone'una göre UTC'ye çeviriyoruz.
+     *
+     * Örnek:
+     *
+     * Frontend:
+     * 2026-08-20T15:00:00
+     *
+     * timezone:
+     * Europe/Istanbul
+     *
+     * DB:
+     * 2026-08-20T12:00:00.000Z
+     */
+        const eventDatetime =
+      this.timezoneService.toUtc(
+        dto.eventDatetime,
+        userSettings.timezone,
+      );
+
+       /*
+     * repeatUntil varsa onu da aynı timezone
+     * mantığıyla UTC'ye çeviriyoruz.
+     */
+    const repeatUntil = dto.repeatUntil
+      ? this.timezoneService.toUtc(
+          dto.repeatUntil,
+          userSettings.timezone,
+        )
+      : undefined;
+
     const reminder = await this.prisma.reminder.create({
       data: {
         userId,
@@ -112,6 +164,28 @@ export class RemindersService {
   ) {
     await this.findOne(userId, reminderId);
 
+     /*
+     * Reminder zamanı değişebilir.
+     * Bu yüzden update sırasında da
+     * kullanıcının timezone bilgisini alıyoruz.
+     */
+    const userSettings =
+      await this.prisma.userSetting.findUnique({
+        where: {
+          userId,
+        },
+
+        select: {
+          timezone: true,
+        },
+      });
+
+    if (!userSettings) {
+      throw new BadRequestException(
+        'Hatırlatıcı güncellemek için kullanıcı timezone ayarı gereklidir.',
+      );
+    }
+
     await this.prisma.reminder.update({
       where: {
         reminderId,
@@ -125,18 +199,27 @@ export class RemindersService {
           description: dto.description.trim(),
         }),
 
-        ...(dto.eventDatetime !== undefined && {
-          eventDatetime: new Date(dto.eventDatetime),
+       ...(dto.eventDatetime !==
+          undefined && {
+          eventDatetime:
+            this.timezoneService.toUtc(
+              dto.eventDatetime,
+              userSettings.timezone,
+            ),
         }),
-
         ...(dto.repeatType !== undefined && {
           repeatType: dto.repeatType,
         }),
 
-        ...(dto.repeatUntil !== undefined && {
-          repeatUntil: dto.repeatUntil
-            ? new Date(dto.repeatUntil)
-            : null,
+        ...(dto.repeatUntil !==
+          undefined && {
+          repeatUntil:
+            dto.repeatUntil
+              ? this.timezoneService.toUtc(
+                  dto.repeatUntil,
+                  userSettings.timezone,
+                )
+              : null,
         }),
 
         ...(dto.isUrgent !== undefined && {

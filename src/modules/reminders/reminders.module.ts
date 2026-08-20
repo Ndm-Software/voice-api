@@ -3,9 +3,10 @@ import { RemindersController } from './reminders.controller';
 import { RemindersService } from './reminders.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { SchedulerModule } from '../../scheduler/scheduler.module';
+import { TimezoneModule } from '../timezone/timezone.module';
 
 @Module({
-  imports: [PrismaModule, SchedulerModule],
+  imports: [PrismaModule, SchedulerModule, TimezoneModule],
   controllers: [RemindersController],
   providers: [RemindersService],
   
