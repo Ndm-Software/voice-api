@@ -153,12 +153,17 @@ export class DevicesService {
 
     const lastActive = new Date();
     const pushTokenData =
-      dto.pushToken !== undefined
-        ? {
-            pushToken: dto.pushToken,
-            pushTokenHash: hashPushToken(dto.pushToken),
-          }
-        : {};
+      dto.pushToken === undefined
+        ? {}
+        : dto.pushToken === null
+          ? {
+              pushToken: null,
+              pushTokenHash: null,
+            }
+          : {
+              pushToken: dto.pushToken,
+              pushTokenHash: hashPushToken(dto.pushToken),
+            };
 
     return transaction.device.upsert({
       where: {
@@ -192,7 +197,7 @@ export class DevicesService {
     userId: string,
     dto: RegisterDeviceDto,
   ) {
-    if (dto.pushToken === undefined) {
+    if (dto.pushToken === undefined || dto.pushToken === null) {
       return;
     }
 

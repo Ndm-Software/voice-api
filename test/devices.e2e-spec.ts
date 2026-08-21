@@ -9,8 +9,8 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
 
-import { JwtStrategy } from '../src/modules/auth/strategies/jwt.strategy';
 import { PlatformType } from '../src/generated/prisma/enums';
+import { JwtStrategy } from '../src/modules/auth/strategies/jwt.strategy';
 import { DevicesController } from '../src/modules/devices/devices.controller';
 import { DevicesService } from '../src/modules/devices/devices.service';
 
@@ -34,8 +34,12 @@ describe('DevicesController (e2e)', () => {
   let registerOrUpdate: jest.MockedFunction<DevicesService['registerOrUpdate']>;
 
   beforeAll(async () => {
-    findAllForUser = jest.fn() as jest.MockedFunction<DevicesService['findAllForUser']>;
-    registerOrUpdate = jest.fn() as jest.MockedFunction<DevicesService['registerOrUpdate']>;
+    findAllForUser = jest.fn() as jest.MockedFunction<
+      DevicesService['findAllForUser']
+    >;
+    registerOrUpdate = jest.fn() as jest.MockedFunction<
+      DevicesService['registerOrUpdate']
+    >;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
@@ -154,6 +158,26 @@ describe('DevicesController (e2e)', () => {
       platform: PlatformType.WINDOWS,
       deviceName: 'Office Desktop',
       pushToken: 'sample-token',
+    });
+  });
+
+  it('accepts null to clear the device push token', async () => {
+    await request(server)
+      .put('/api/devices')
+      .set('Cookie', `accessToken=${accessToken}`)
+      .send({
+        installationId: '550e8400-e29b-41d4-a716-446655440000',
+        platform: 'ANDROID',
+        deviceName: 'Pixel 8',
+        pushToken: null,
+      })
+      .expect(200);
+
+    expect(registerOrUpdate).toHaveBeenCalledWith(userId, {
+      installationId: '550e8400-e29b-41d4-a716-446655440000',
+      platform: PlatformType.ANDROID,
+      deviceName: 'Pixel 8',
+      pushToken: null,
     });
   });
 });

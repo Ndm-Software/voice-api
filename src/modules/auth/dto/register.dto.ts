@@ -1,28 +1,22 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  Matches,
-} from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-export class RegisterDto {
+import { RegistrationPhoneDto, trimString } from './registration-phone.dto';
+
+export class RegisterDto extends RegistrationPhoneDto {
   @IsString()
   @IsNotEmpty()
+  @Transform(trimString)
   firstName: string;
 
   @IsString()
   @IsNotEmpty()
+  @Transform(trimString)
   lastName: string;
 
   @IsEmail()
+  @Transform(trimString)
   email: string;
-
-  @IsString()
-  @Matches(/^[0-9]{10,11}$/, {
-    message: 'Phone number must contain only digits.',
-  })
-  phoneNumber: string;
 
   @IsString()
   @MinLength(8)

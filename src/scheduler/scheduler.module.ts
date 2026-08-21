@@ -3,7 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { SchedulerService } from './scheduler.service';
-
+import { PushNotificationModule } from '../modules/push-notification/push-notification.module';
 import { PushNotificationProcessor } from './processors/push-notification.processor';
 import { VoiceCallProcessor } from './processors/voice-call.processor';
 import { VoiceCallModule } from '../modules/voice-call/voice-call.module';
@@ -15,6 +15,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     ConfigModule,
     PrismaModule,
     VoiceCallModule,
+    PushNotificationModule,
 
     BullModule.forRootAsync({
       imports: [ConfigModule],
