@@ -247,5 +247,6 @@ model SilentHour {
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
+  @@unique([userId, dayOfWeek])
   @@map("silent_hours")
 }

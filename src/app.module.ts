@@ -16,6 +16,7 @@ import { PushNotificationSettingsModule } from './modules/push-notification-sett
 import { OtpModule } from './modules/otp/otp.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { ReminderHistoryModule } from './modules/reminder-history/reminder-history.module';
+import { SilentHoursModule } from './modules/silent-hours/silent-hours.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ReminderHistoryModule } from './modules/reminder-history/reminder-histo
     PushNotificationSettingsModule,
     OtpModule,
     SchedulerModule,
+    SilentHoursModule,
   ],
   controllers: [AppController],
   providers: [AppService],
