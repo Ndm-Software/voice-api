@@ -8,6 +8,5 @@ import { SchedulerModule } from '../../scheduler/scheduler.module';
   imports: [PrismaModule, SchedulerModule],
   controllers: [RemindersController],
   providers: [RemindersService],
-  
 })
 export class RemindersModule {}
