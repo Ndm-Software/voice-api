@@ -182,10 +182,6 @@ export class DevicesService {
         ...pushTokenData,
       },
       update: {
-        platform: dto.platform,
-        deviceName: dto.deviceName,
-        lastActive,
-        isActive: true,
         ...pushTokenData,
       },
       select: deviceResponseSelect,

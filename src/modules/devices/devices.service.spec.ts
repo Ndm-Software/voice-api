@@ -217,13 +217,14 @@ describe('DevicesService', () => {
     );
     expect(upsertArgs.update).toEqual(
       expect.objectContaining({
-        platform: dto.platform,
-        deviceName: dto.deviceName,
         pushToken: dto.pushToken,
         pushTokenHash,
-        isActive: true,
       }),
     );
+    expect(upsertArgs.update).toEqual({
+      pushToken: dto.pushToken,
+      pushTokenHash,
+    });
     expect(upsertArgs.select).toEqual({
       deviceId: true,
       platform: true,
