@@ -20,8 +20,6 @@ const validEnvironment = {
   TWILIO_ACCOUNT_SID: `AC${'0'.repeat(32)}`,
   TWILIO_AUTH_TOKEN: 'twilio-auth-token',
   TWILIO_PHONE_NUMBER: '+10000000000',
-  TWILIO_TWIML_URL:
-    'https://handler.twilio.com/twiml/EH00000000000000000000000000000000',
 };
 
 describe('validateEnvironment', () => {
@@ -108,11 +106,6 @@ describe('validateEnvironment', () => {
       'TWILIO_PHONE_NUMBER',
       '05551112233',
       'TWILIO_PHONE_NUMBER must use E.164 format',
-    ],
-    [
-      'TWILIO_TWIML_URL',
-      'http://handler.twilio.com/twiml/test',
-      'TWILIO_TWIML_URL must be an HTTPS URL',
     ],
     [
       'OTP_MAX_VERIFY_ATTEMPTS',

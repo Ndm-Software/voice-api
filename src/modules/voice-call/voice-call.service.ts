@@ -17,15 +17,20 @@ export class VoiceCallService {
   async makeCall(to: string, message: string) {
     try {
       const from = this.configService.getOrThrow<string>('TWILIO_PHONE_NUMBER');
+      const twiml = new twilio.twiml.VoiceResponse();
 
-      const twimlUrl =
-        this.configService.getOrThrow<string>('TWILIO_TWIML_URL');
+      twiml.say(
+        {
+          language: 'tr-TR',
+          voice: 'alice',
+        },
+        message,
+      );
 
       const call = await this.client.calls.create({
         to,
         from,
-        url: `${twimlUrl}?message=${encodeURIComponent(message)}`,
-        method: 'GET',
+        twiml: twiml.toString(),
       });
 
       this.logger.log(`Voice call created: ${call.sid}`);
@@ -35,12 +40,15 @@ export class VoiceCallService {
         callSid: call.sid,
         status: call.status,
       };
-    } catch (error: any) {
-      this.logger.error(`Twilio Arama Hatasi: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown Twilio error';
+
+      this.logger.error(`Twilio Arama Hatasi: ${errorMessage}`);
 
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
