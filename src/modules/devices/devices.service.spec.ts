@@ -386,4 +386,16 @@ describe('DevicesService', () => {
     );
     expect(runTransaction).toHaveBeenCalledTimes(1);
   });
+  it('reactivates an existing device when the same installationId logs in again', async () => {
+    await service.registerOrUpdate(userId, dto);
+
+    const upsertArgs = upsert.mock.calls[0]?.[0];
+
+    expect(upsertArgs).toBeDefined();
+    if (upsertArgs === undefined) return;
+
+    expect(upsertArgs.update).toHaveProperty('isActive', true);
+    expect(upsertArgs.update).toHaveProperty('lastActive');
+    expect(upsertArgs.update.lastActive).toBeInstanceOf(Date);
+  });
 });
