@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { SchedulerService } from '../scheduler.service';
+
 import {
   JOB_NAMES,
   QUEUE_NAMES,
@@ -20,41 +20,42 @@ export class PushNotificationProcessor {
   constructor(
     private readonly prisma: PrismaService,
     private readonly pushNotificationService: PushNotificationService,
-    private readonly schedulerService: SchedulerService,
   ) {}
 
   @Process(JOB_NAMES.SEND_PUSH_NOTIFICATION)
   async handlePushNotification(
     job: Job<ReminderJobData>,
   ): Promise<void> {
-    const executedAt = new Date();
+  
+     const executedAt = new Date();
 
+  this.logger.log(
+    '==============================================',
+  );
     this.logger.log(
-      '==============================================',
-    );
-    this.logger.log(
-      `🔔 PUSH JOB ZAMANI GELDİ VE ÇALIŞTI`,
-    );
+    `🔔 PUSH JOB ZAMANI GELDİ VE ÇALIŞTI`,
+  );
 
-    this.logger.log(
-      `Job ID: ${job.id}`,
-    );
+  this.logger.log(
+    `Job ID: ${job.id}`,
+  );
 
-    this.logger.log(
-      `Reminder ID: ${job.data.reminderId}`,
-    );
+  this.logger.log(
+    `Reminder ID: ${job.data.reminderId}`,
+  );
 
-    this.logger.log(
-      `Çalışma zamanı UTC: ${executedAt.toISOString()}`,
-    );
+  this.logger.log(
+    `Çalışma zamanı UTC: ${executedAt.toISOString()}`,
+  );
 
-    this.logger.log(
-      `Çalışma zamanı local: ${executedAt.toLocaleString('tr-TR')}`,
-    );
+  this.logger.log(
+    `Çalışma zamanı local: ${executedAt.toLocaleString('tr-TR')}`,
+  );
 
-    this.logger.log(
-      '==============================================',
-    );
+  this.logger.log(
+    '==============================================',
+  );
+
 
     const reminder =
       await this.prisma.reminder.findUnique({
@@ -207,26 +208,25 @@ export class PushNotificationProcessor {
       this.logger.log(
         `Push notification tamamlandı. Başarılı cihaz: ${successCount}/${devices.length}`,
       );
-    } else {
-      await this.prisma.reminderHistory.create({
-        data: {
-          reminderId: reminder.reminderId,
-          historyType: 'PUSH',
-          status: 'FAILED',
-          provider: 'FCM',
-          attempt: 1,
-          errorMessage:
-            errors.join(' | ') ||
-            'Push notification gönderilemedi.',
-        },
-      });
 
-      this.logger.error(
-        `Push notification hiçbir cihaza gönderilemedi.`,
-      );
+      return;
     }
 
-    // İşlem sonlandıktan sonra tekrarlayan kontrolünü tetikle
-    await this.schedulerService.handleRecurringReminder(job.data.reminderId);
+    await this.prisma.reminderHistory.create({
+      data: {
+        reminderId: reminder.reminderId,
+        historyType: 'PUSH',
+        status: 'FAILED',
+        provider: 'FCM',
+        attempt: 1,
+        errorMessage:
+          errors.join(' | ') ||
+          'Push notification gönderilemedi.',
+      },
+    });
+
+    this.logger.error(
+      `Push notification hiçbir cihaza gönderilemedi.`,
+    );
   }
 }

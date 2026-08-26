@@ -3,11 +3,11 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 
 import { JOB_NAMES, QUEUE_NAMES } from '../constants/queue.constants';
+
 import { ReminderJobData } from '../interfaces/reminder-job-data.interface';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { VoiceCallService } from '../../modules/voice-call/voice-call.service';
-import { SchedulerService } from '../scheduler.service';
 
 @Processor(QUEUE_NAMES.VOICE_CALL)
 export class VoiceCallProcessor {
@@ -16,7 +16,6 @@ export class VoiceCallProcessor {
   constructor(
     private readonly prisma: PrismaService,
     private readonly voiceCallService: VoiceCallService,
-    private readonly schedulerService: SchedulerService,
   ) {}
 
   @Process(JOB_NAMES.MAKE_VOICE_CALL)
@@ -35,11 +34,13 @@ export class VoiceCallProcessor {
 
     if (!reminder) {
       this.logger.warn(`Reminder bulunamadı: ${job.data.reminderId}`);
+
       return;
     }
 
     if (reminder.status !== 'ACTIVE') {
       this.logger.warn(`Reminder aktif değil: ${reminder.reminderId}`);
+
       return;
     }
 
@@ -49,6 +50,7 @@ export class VoiceCallProcessor {
 
     if (!voiceSetting || !voiceSetting.enabled) {
       this.logger.warn(`Voice call setting aktif değil: ${job.data.settingId}`);
+
       return;
     }
 
@@ -63,6 +65,7 @@ export class VoiceCallProcessor {
       : reminder.title;
 
     this.logger.log(`Twilio hedef numara: ${phoneNumber}`);
+
     this.logger.log(`Okunacak mesaj: ${message}`);
 
     const result = await this.voiceCallService.makeCall(phoneNumber, message);
@@ -72,8 +75,5 @@ export class VoiceCallProcessor {
     } else {
       this.logger.error(`Voice call başarisiz. Hata: ${result.error}`);
     }
-
-    // Arama işlemi tamamlandıktan sonra tekrarlayan hatırlatıcı kontrolünü çalıştır
-    await this.schedulerService.handleRecurringReminder(job.data.reminderId);
   }
 }
