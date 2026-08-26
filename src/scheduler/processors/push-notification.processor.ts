@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 
+import { SchedulerService } from '../scheduler.service';
 import {
   JOB_NAMES,
   QUEUE_NAMES,
@@ -14,11 +15,11 @@ import { PushNotificationService } from '../../modules/push-notification/push-no
 
 @Processor(QUEUE_NAMES.PUSH_NOTIFICATION)
 export class PushNotificationProcessor {
-  private readonly logger =
-    new Logger(PushNotificationProcessor.name);
+  private readonly logger = new Logger(PushNotificationProcessor.name);
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
     private readonly pushNotificationService: PushNotificationService,
   ) {}
 
@@ -26,107 +27,62 @@ export class PushNotificationProcessor {
   async handlePushNotification(
     job: Job<ReminderJobData>,
   ): Promise<void> {
-  
-     const executedAt = new Date();
+    const executedAt = new Date();
 
-  this.logger.log(
-    '==============================================',
-  );
-    this.logger.log(
-    `🔔 PUSH JOB ZAMANI GELDİ VE ÇALIŞTI`,
-  );
+    this.logger.log('==============================================');
+    this.logger.log(`🔔 PUSH JOB ZAMANI GELDİ VE ÇALIŞTI`);
+    this.logger.log(`Job ID: ${job.id}`);
+    this.logger.log(`Reminder ID: ${job.data.reminderId}`);
+    this.logger.log(`Çalışma zamanı UTC: ${executedAt.toISOString()}`);
+    this.logger.log(`Çalışma zamanı local: ${executedAt.toLocaleString('tr-TR')}`);
+    this.logger.log('==============================================');
 
-  this.logger.log(
-    `Job ID: ${job.id}`,
-  );
-
-  this.logger.log(
-    `Reminder ID: ${job.data.reminderId}`,
-  );
-
-  this.logger.log(
-    `Çalışma zamanı UTC: ${executedAt.toISOString()}`,
-  );
-
-  this.logger.log(
-    `Çalışma zamanı local: ${executedAt.toLocaleString('tr-TR')}`,
-  );
-
-  this.logger.log(
-    '==============================================',
-  );
-
-
-    const reminder =
-      await this.prisma.reminder.findUnique({
-        where: {
-          reminderId: job.data.reminderId,
-        },
-        include: {
-          pushNotifications: true,
-
-          user: {
-            include: {
-              userSetting: true,
-              devices: true,
-            },
+    const reminder = await this.prisma.reminder.findUnique({
+      where: {
+        reminderId: job.data.reminderId,
+      },
+      include: {
+        pushNotifications: true,
+        user: {
+          include: {
+            userSetting: true,
+            devices: true,
           },
         },
-      });
+      },
+    });
 
     if (!reminder) {
-      this.logger.warn(
-        `Reminder bulunamadı: ${job.data.reminderId}`,
-      );
-
+      this.logger.warn(`Reminder bulunamadı: ${job.data.reminderId}`);
       return;
     }
 
     if (reminder.status !== 'ACTIVE') {
-      this.logger.warn(
-        `Reminder aktif değil: ${reminder.reminderId}`,
-      );
-
+      this.logger.warn(`Reminder aktif değil: ${reminder.reminderId}`);
       return;
     }
 
-    const pushSetting =
-      reminder.pushNotifications.find(
-        (setting) =>
-          setting.pushId === job.data.settingId,
-      );
+    const pushSetting = reminder.pushNotifications.find(
+      (setting) => setting.pushId === job.data.settingId,
+    );
 
     if (!pushSetting || !pushSetting.enabled) {
       this.logger.warn(
         `Push notification setting aktif değil: ${job.data.settingId}`,
       );
-
       return;
     }
 
     // Kullanıcı bildirimleri genel olarak kapattıysa gönderme.
-    if (
-      reminder.user.userSetting?.notificationsEnabled ===
-      false
-    ) {
+    if (reminder.user.userSetting?.notificationsEnabled === false) {
       this.logger.warn(
         `Kullanıcının bildirimleri kapalı. User ID: ${reminder.userId}`,
       );
-
       return;
     }
 
-    /*
-     * Sadece:
-     * - aktif
-     * - push token sahibi
-     *
-     * cihazlara bildirim gönderiyoruz.
-     */
     const devices = reminder.user.devices.filter(
-      (device) =>
-        device.isActive &&
-        device.pushToken !== null,
+      (device) => device.isActive && device.pushToken !== null,
     );
 
     if (devices.length === 0) {
@@ -141,54 +97,42 @@ export class PushNotificationProcessor {
           status: 'FAILED',
           provider: 'FCM',
           attempt: 1,
-          errorMessage:
-            'Aktif push token bulunan cihaz yok.',
+          errorMessage: 'Aktif push token bulunan cihaz yok.',
         },
       });
-
+      
+      // Cihaz olmasa bile sonraki periyot için zamanlamayı tetikle
+      await this.schedulerService.handleRecurringReminder(reminder.reminderId);
       return;
     }
 
     const title = reminder.title;
-
-    const body =
-      reminder.description ??
-      'Hatırlatıcınızın zamanı yaklaşıyor.';
+    const body = reminder.description ?? 'Hatırlatıcınızın zamanı yaklaşıyor.';
 
     let successCount = 0;
     const errors: string[] = [];
 
     for (const device of devices) {
-      if (!device.pushToken) {
-        continue;
-      }
+      if (!device.pushToken) continue;
 
-      this.logger.log(
-        `Push gönderiliyor. Device ID: ${device.deviceId}`,
+      this.logger.log(`Push gönderiliyor. Device ID: ${device.deviceId}`);
+
+      const result = await this.pushNotificationService.sendToDevice(
+        device.pushToken,
+        title,
+        body,
+        reminder.reminderId,
       );
-
-      const result =
-        await this.pushNotificationService.sendToDevice(
-          device.pushToken,
-          title,
-          body,
-          reminder.reminderId,
-        );
 
       if (result.success) {
         successCount += 1;
       } else {
         errors.push(
-          result.error ??
-            `Device ${device.deviceId} için bilinmeyen hata.`,
+          result.error ?? `Device ${device.deviceId} için bilinmeyen hata.`,
         );
       }
     }
 
-    /*
-     * En az bir cihaza başarıyla gittiyse
-     * bu push olayını SUCCESS kabul ediyoruz.
-     */
     if (successCount > 0) {
       await this.prisma.reminderHistory.create({
         data: {
@@ -198,35 +142,29 @@ export class PushNotificationProcessor {
           provider: 'FCM',
           sentAt: new Date(),
           attempt: 1,
-          errorMessage:
-            errors.length > 0
-              ? errors.join(' | ')
-              : null,
+          errorMessage: errors.length > 0 ? errors.join(' | ') : null,
         },
       });
 
       this.logger.log(
         `Push notification tamamlandı. Başarılı cihaz: ${successCount}/${devices.length}`,
       );
+    } else {
+      await this.prisma.reminderHistory.create({
+        data: {
+          reminderId: reminder.reminderId,
+          historyType: 'PUSH',
+          status: 'FAILED',
+          provider: 'FCM',
+          attempt: 1,
+          errorMessage: errors.join(' | ') || 'Push notification gönderilemedi.',
+        },
+      });
 
-      return;
+      this.logger.error(`Push notification hiçbir cihaza gönderilemedi.`);
     }
 
-    await this.prisma.reminderHistory.create({
-      data: {
-        reminderId: reminder.reminderId,
-        historyType: 'PUSH',
-        status: 'FAILED',
-        provider: 'FCM',
-        attempt: 1,
-        errorMessage:
-          errors.join(' | ') ||
-          'Push notification gönderilemedi.',
-      },
-    });
-
-    this.logger.error(
-      `Push notification hiçbir cihaza gönderilemedi.`,
-    );
+    // Bildirim başarılı veya başarısız olsun, bir sonraki tekrarı zamanla
+    await this.schedulerService.handleRecurringReminder(reminder.reminderId);
   }
 }

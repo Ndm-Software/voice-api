@@ -5,7 +5,7 @@ import { Job } from 'bull';
 import { JOB_NAMES, QUEUE_NAMES } from '../constants/queue.constants';
 
 import { ReminderJobData } from '../interfaces/reminder-job-data.interface';
-
+import { SchedulerService } from '../scheduler.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VoiceCallService } from '../../modules/voice-call/voice-call.service';
 
@@ -15,6 +15,7 @@ export class VoiceCallProcessor {
 
   constructor(
     private readonly prisma: PrismaService,
+        private readonly schedulerService: SchedulerService,
     private readonly voiceCallService: VoiceCallService,
   ) {}
 
@@ -75,5 +76,6 @@ export class VoiceCallProcessor {
     } else {
       this.logger.error(`Voice call başarisiz. Hata: ${result.error}`);
     }
+     await this.schedulerService.handleRecurringReminder(job.data.reminderId);
   }
 }
