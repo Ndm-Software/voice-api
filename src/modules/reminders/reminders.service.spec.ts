@@ -86,7 +86,14 @@ describe('RemindersService', () => {
         isUrgent: true,
       },
     });
-    expect(prisma.pushNotificationSetting.create).toHaveBeenCalled();
+    expect(prisma.pushNotificationSetting.create).toHaveBeenCalledWith({
+      data: {
+        reminderId,
+        minutesBefore: 10,
+        jobId: '',
+        enabled: true,
+      },
+    });
     expect(prisma.voiceCallSetting.create).toHaveBeenCalled();
     expect(schedulerService.scheduleReminder).toHaveBeenCalledWith(reminderId);
   });

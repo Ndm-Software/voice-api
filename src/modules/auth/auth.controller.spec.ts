@@ -182,7 +182,7 @@ describe('AuthController', () => {
     });
     const request = {
       cookies: { refreshToken: 'old-refresh-token' },
-    } as Request;
+    } as unknown as Request;
 
     const result = await controller.refresh(request, response, {});
 

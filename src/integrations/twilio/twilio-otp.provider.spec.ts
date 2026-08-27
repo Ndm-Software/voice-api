@@ -22,16 +22,20 @@ describe('TwilioOtpProvider', () => {
   let provider: TwilioOtpProvider;
 
   beforeEach(() => {
-    createVerification =
-      jest.fn<TwilioVerifyService['verifications']['create']>();
-    createVerificationCheck =
-      jest.fn<TwilioVerifyService['verificationChecks']['create']>();
-    services = jest
-      .fn<TwilioVerifyClient['verify']['v2']['services']>()
-      .mockReturnValue({
-        verifications: { create: createVerification },
-        verificationChecks: { create: createVerificationCheck },
-      });
+    createVerification = jest.fn() as jest.MockedFunction<
+      TwilioVerifyService['verifications']['create']
+    >;
+    createVerificationCheck = jest.fn() as jest.MockedFunction<
+      TwilioVerifyService['verificationChecks']['create']
+    >;
+    services = (
+      jest.fn() as jest.MockedFunction<
+        TwilioVerifyClient['verify']['v2']['services']
+      >
+    ).mockReturnValue({
+      verifications: { create: createVerification },
+      verificationChecks: { create: createVerificationCheck },
+    });
 
     const client: TwilioVerifyClient = {
       verify: { v2: { services } },

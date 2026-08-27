@@ -35,13 +35,15 @@ describe('OtpSecurityService', () => {
 
   beforeEach(() => {
     redisService = {
-      setIfAbsentWithExpiry: jest
-        .fn<RedisService['setIfAbsentWithExpiry']>()
-        .mockResolvedValue(true),
-      incrementWithExpiry: jest
-        .fn<RedisService['incrementWithExpiry']>()
-        .mockResolvedValue(1),
-      delete: jest.fn<RedisService['delete']>().mockResolvedValue(undefined),
+      setIfAbsentWithExpiry: (
+        jest.fn() as jest.MockedFunction<RedisService['setIfAbsentWithExpiry']>
+      ).mockResolvedValue(true),
+      incrementWithExpiry: (
+        jest.fn() as jest.MockedFunction<RedisService['incrementWithExpiry']>
+      ).mockResolvedValue(1),
+      delete: (
+        jest.fn() as jest.MockedFunction<RedisService['delete']>
+      ).mockResolvedValue(undefined),
     };
     const config = {
       'otp.pendingRegistrationTtlSeconds': 600,

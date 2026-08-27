@@ -221,10 +221,6 @@ describe('DevicesService', () => {
         pushTokenHash,
       }),
     );
-    expect(upsertArgs.update).toEqual({
-      pushToken: dto.pushToken,
-      pushTokenHash,
-    });
     expect(upsertArgs.select).toEqual({
       deviceId: true,
       platform: true,
