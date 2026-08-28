@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { ReminderHistoryModule } from '../modules/reminder-history/reminder-history.module';
 import { SchedulerService } from './scheduler.service';
 import { PushNotificationModule } from '../modules/push-notification/push-notification.module';
 import { PushNotificationProcessor } from './processors/push-notification.processor';
@@ -16,6 +16,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     VoiceCallModule,
     PushNotificationModule,
+    ReminderHistoryModule,
 
     BullModule.forRootAsync({
       imports: [ConfigModule],
