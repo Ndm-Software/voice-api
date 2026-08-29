@@ -143,3 +143,53 @@ describe('UsersService user creation', () => {
     ).rejects.toBeInstanceOf(ConflictException);
   });
 });
+
+describe('UsersService profile update', () => {
+  const userId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+  let findUnique: jest.Mock;
+  let updateUser: jest.Mock;
+  let service: UsersService;
+
+  beforeEach(() => {
+    findUnique = jest
+      .fn()
+      .mockResolvedValueOnce({ userId, email: 'old@example.com' })
+      .mockResolvedValueOnce(null);
+    updateUser = jest.fn().mockResolvedValue({ userId });
+    service = new UsersService({
+      user: {
+        findUnique,
+        update: updateUser,
+      },
+    } as unknown as PrismaService);
+  });
+
+  it('updates only the profile fields owned by the general profile endpoint', async () => {
+    await service.update(userId, {
+      firstName: ' Yeni ',
+      lastName: ' Kullanıcı ',
+      email: ' NEW@EXAMPLE.COM ',
+    });
+
+    expect(updateUser).toHaveBeenCalledWith({
+      where: { userId },
+      data: {
+        firstName: 'Yeni',
+        lastName: 'Kullanıcı',
+        email: 'new@example.com',
+      },
+      select: {
+        userId: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phoneNumber: true,
+        phoneVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    expect(findUnique).toHaveBeenCalledTimes(2);
+  });
+});
