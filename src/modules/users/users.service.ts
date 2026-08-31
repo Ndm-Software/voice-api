@@ -7,6 +7,7 @@ import {
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { getUserInitials } from '../../common/utils/user-avatar.util';
 
 /**
  * AuthService register işlemi sırasında bu veri yapısını gönderir.
@@ -60,7 +61,10 @@ export class UsersService {
       throw new NotFoundException('Kullanıcı bulunamadı.');
     }
 
-    return user;
+    return {
+      ...user,
+      initials: getUserInitials(user.firstName, user.lastName),
+    };
   }
 
   /**
@@ -166,7 +170,7 @@ export class UsersService {
       }
     }
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: {
         userId,
       },
@@ -191,6 +195,11 @@ export class UsersService {
       },
       select: safeUserSelect,
     });
+
+    return {
+      ...updatedUser,
+      initials: getUserInitials(updatedUser.firstName, updatedUser.lastName),
+    };
   }
 
   async remove(userId: string) {

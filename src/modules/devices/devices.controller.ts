@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -22,5 +30,13 @@ export class DevicesController {
     @Body() dto: RegisterDeviceDto,
   ) {
     return this.devicesService.registerOrUpdate(user.userId, dto);
+  }
+
+  @Delete(':deviceId')
+  deactivate(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('deviceId') deviceId: string,
+  ) {
+    return this.devicesService.deactivateOwnedDevice(user.userId, deviceId);
   }
 }
