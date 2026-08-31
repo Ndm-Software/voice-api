@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -18,6 +19,7 @@ import { UpdateReminderDto } from './dto/update-reminder.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
+import { FindRemindersDto } from './dto/find-reminders.dto';
 
 @Controller('reminders')
 @UseGuards(JwtAuthGuard)
@@ -33,8 +35,11 @@ export class RemindersController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.remindersService.findAll(user.userId);
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() filterDto: FindRemindersDto,
+  ) {
+    return this.remindersService.findAll(user.userId, filterDto);
   }
 
   @Get(':id')

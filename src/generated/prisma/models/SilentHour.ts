@@ -214,6 +214,7 @@ export type SilentHourOrderByWithRelationInput = {
 
 export type SilentHourWhereUniqueInput = Prisma.AtLeast<{
   silentHourId?: string
+  userId_dayOfWeek?: Prisma.SilentHourUserIdDayOfWeekCompoundUniqueInput
   AND?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
   OR?: Prisma.SilentHourWhereInput[]
   NOT?: Prisma.SilentHourWhereInput | Prisma.SilentHourWhereInput[]
@@ -224,7 +225,7 @@ export type SilentHourWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SilentHour"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "silentHourId">
+}, "silentHourId" | "userId_dayOfWeek">
 
 export type SilentHourOrderByWithAggregationInput = {
   silentHourId?: Prisma.SortOrder
@@ -329,6 +330,11 @@ export type SilentHourListRelationFilter = {
 
 export type SilentHourOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type SilentHourUserIdDayOfWeekCompoundUniqueInput = {
+  userId: string
+  dayOfWeek: $Enums.DayOfWeek
 }
 
 export type SilentHourCountOrderByAggregateInput = {

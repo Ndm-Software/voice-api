@@ -355,7 +355,6 @@ export const validateEnvironment = (
   ) {
     errors.push('TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL');
   }
-
   if (errors.length > 0) {
     throw new Error(`Environment validation failed: ${errors.join('; ')}`);
   }

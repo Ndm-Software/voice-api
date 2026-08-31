@@ -217,11 +217,8 @@ describe('DevicesService', () => {
     );
     expect(upsertArgs.update).toEqual(
       expect.objectContaining({
-        platform: dto.platform,
-        deviceName: dto.deviceName,
         pushToken: dto.pushToken,
         pushTokenHash,
-        isActive: true,
       }),
     );
     expect(upsertArgs.select).toEqual({
@@ -384,5 +381,17 @@ describe('DevicesService', () => {
       ConflictException,
     );
     expect(runTransaction).toHaveBeenCalledTimes(1);
+  });
+  it('reactivates an existing device when the same installationId logs in again', async () => {
+    await service.registerOrUpdate(userId, dto);
+
+    const upsertArgs = upsert.mock.calls[0]?.[0];
+
+    expect(upsertArgs).toBeDefined();
+    if (upsertArgs === undefined) return;
+
+    expect(upsertArgs.update).toHaveProperty('isActive', true);
+    expect(upsertArgs.update).toHaveProperty('lastActive');
+    expect(upsertArgs.update.lastActive).toBeInstanceOf(Date);
   });
 });

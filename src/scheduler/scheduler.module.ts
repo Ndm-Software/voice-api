@@ -3,13 +3,14 @@ import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { PollyModule } from '../integrations/polly/polly.module';
-import { SchedulerService } from './scheduler.service';
+import { PrismaModule } from '../prisma/prisma.module';
 import { PushNotificationModule } from '../modules/push-notification/push-notification.module';
-import { PushNotificationProcessor } from './processors/push-notification.processor';
-import { VoiceCallProcessor } from './processors/voice-call.processor';
+import { ReminderHistoryModule } from '../modules/reminder-history/reminder-history.module';
 import { VoiceCallModule } from '../modules/voice-call/voice-call.module';
 import { QUEUE_NAMES } from './constants/queue.constants';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PushNotificationProcessor } from './processors/push-notification.processor';
+import { VoiceCallProcessor } from './processors/voice-call.processor';
+import { SchedulerService } from './scheduler.service';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PollyModule,
     VoiceCallModule,
     PushNotificationModule,
+    ReminderHistoryModule,
 
     BullModule.forRootAsync({
       imports: [ConfigModule],

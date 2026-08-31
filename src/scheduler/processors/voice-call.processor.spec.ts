@@ -5,10 +5,13 @@ import {
   PollySynthesisError,
 } from '../../integrations/polly/polly.errors';
 import type { SynthesizedSpeech } from '../../integrations/polly/polly.types';
-import { PollyService } from '../../integrations/polly/polly.service';
-import { VoiceCallService } from '../../modules/voice-call/voice-call.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import type { PollyService } from '../../integrations/polly/polly.service';
+import type { PushNotificationService } from '../../modules/push-notification/push-notification.service';
+import type { ReminderHistoryService } from '../../modules/reminder-history/reminder-history.service';
+import type { VoiceCallService } from '../../modules/voice-call/voice-call.service';
+import type { PrismaService } from '../../prisma/prisma.service';
 import { ReminderJobData } from '../interfaces/reminder-job-data.interface';
+import type { SchedulerService } from '../scheduler.service';
 import { VoiceCallProcessor } from './voice-call.processor';
 
 describe('VoiceCallProcessor', () => {
@@ -19,6 +22,15 @@ describe('VoiceCallProcessor', () => {
   };
   const voiceCallService = {
     makeCall: jest.fn(),
+  };
+  const schedulerService = {
+    handleRecurringReminder: jest.fn(),
+  };
+  const pushNotificationService = {
+    sendToDevice: jest.fn(),
+  };
+  const reminderHistoryService = {
+    create: jest.fn(),
   };
   const jobDiscard = jest.fn();
   const processor = new VoiceCallProcessor(
@@ -32,6 +44,9 @@ describe('VoiceCallProcessor', () => {
     } as unknown as PrismaService,
     pollyService as unknown as PollyService,
     voiceCallService as unknown as VoiceCallService,
+    schedulerService as unknown as SchedulerService,
+    pushNotificationService as unknown as PushNotificationService,
+    reminderHistoryService as unknown as ReminderHistoryService,
   );
 
   const job = {
@@ -42,6 +57,7 @@ describe('VoiceCallProcessor', () => {
       reminderId: 'reminder-id',
       userId: 'user-id',
       settingId: 'setting-id',
+      scheduledFor: '2026-08-21T09:00:00.000Z',
     },
   } as Job<ReminderJobData>;
 
@@ -61,6 +77,7 @@ describe('VoiceCallProcessor', () => {
       callSid: `CA${'1'.repeat(32)}`,
       status: 'queued',
     });
+    schedulerService.handleRecurringReminder.mockResolvedValue(undefined);
   });
 
   it('synthesizes in the user language and starts one Twilio call', async () => {
@@ -78,6 +95,7 @@ describe('VoiceCallProcessor', () => {
                 language: true,
               },
             },
+            devices: true,
           },
         },
         voiceCallSettings: true,
@@ -121,6 +139,19 @@ describe('VoiceCallProcessor', () => {
       speech,
     );
     expect(jobDiscard).not.toHaveBeenCalled();
+    expect(reminderHistoryService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reminderId: 'reminder-id',
+        historyType: 'VOICE_CALL',
+        status: 'SUCCESS',
+        provider: 'TWILIO',
+      }),
+    );
+    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledWith(
+      'reminder-id',
+      '2026-08-21T09:00:00.000Z',
+      'setting-id',
+    );
   });
 
   it('ignores a stale or already replaced Bull job', async () => {
@@ -208,7 +239,7 @@ describe('VoiceCallProcessor', () => {
 
     await expect(processor.handleVoiceCall(job)).rejects.toBe(error);
     expect(jobDiscard).toHaveBeenCalledTimes(1);
-    expect(voiceSettingUpdateMany).not.toHaveBeenCalledWith({
+    expect(voiceSettingUpdateMany).toHaveBeenCalledWith({
       where: {
         callId: 'setting-id',
         jobId: 'attempting:voice-call-job',
@@ -251,6 +282,77 @@ describe('VoiceCallProcessor', () => {
     });
     expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
   });
+
+  it('uses the current reminder occurrence for a legacy queued job', async () => {
+    const legacyJob = {
+      ...job,
+      data: {
+        reminderId: 'reminder-id',
+        userId: 'user-id',
+        settingId: 'setting-id',
+      },
+    } as Job<ReminderJobData>;
+
+    await processor.handleVoiceCall(legacyJob);
+
+    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledWith(
+      'reminder-id',
+      '2026-08-21T09:00:00.000Z',
+      'setting-id',
+    );
+  });
+
+  it('retries recurrence bookkeeping without starting a second call', async () => {
+    const retryJob = {
+      ...job,
+      attemptsMade: 1,
+    } as Job<ReminderJobData>;
+    reminderFindUnique.mockResolvedValueOnce(
+      createReminder({ jobId: 'attempting:voice-call-job' }),
+    );
+
+    await processor.handleVoiceCall(retryJob);
+
+    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledTimes(1);
+    expect(pollyService.synthesize).not.toHaveBeenCalled();
+    expect(voiceCallService.makeCall).not.toHaveBeenCalled();
+    expect(voiceSettingUpdateMany).toHaveBeenCalledWith({
+      where: {
+        callId: 'setting-id',
+        jobId: 'attempting:voice-call-job',
+      },
+      data: { jobId: null },
+    });
+  });
+
+  it('recovers a failed recurrence schedule without repeating a successful call', async () => {
+    const error = new Error('Redis unavailable');
+    schedulerService.handleRecurringReminder.mockRejectedValueOnce(error);
+
+    await expect(processor.handleVoiceCall(job)).rejects.toBe(error);
+    expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
+    expect(jobDiscard).not.toHaveBeenCalled();
+    expect(voiceSettingUpdateMany).not.toHaveBeenCalledWith({
+      where: {
+        callId: 'setting-id',
+        jobId: 'attempting:voice-call-job',
+      },
+      data: { jobId: null },
+    });
+
+    const retryJob = {
+      ...job,
+      attemptsMade: 1,
+    } as Job<ReminderJobData>;
+    reminderFindUnique.mockResolvedValueOnce(
+      createReminder({ jobId: 'attempting:voice-call-job' }),
+    );
+
+    await processor.handleVoiceCall(retryJob);
+
+    expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
+    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledTimes(2);
+  });
 });
 
 const createReminder = (
@@ -260,10 +362,12 @@ const createReminder = (
 ) => ({
   reminderId: 'reminder-id',
   status: 'ACTIVE',
+  eventDatetime: new Date('2026-08-21T09:00:00.000Z'),
   title: 'İlaç zamanı',
   description: 'Bir bardak suyla al',
   user: {
     phoneNumber: '+905551112233',
+    devices: [],
     userSetting: {
       language: {
         code: 'TR',

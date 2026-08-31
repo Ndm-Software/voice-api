@@ -1,29 +1,58 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
+import { ReminderStatus } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SchedulerService } from '../../scheduler/scheduler.service';
-
+import { TimezoneService } from '../../common/services/timezone.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
+import { FindRemindersDto } from './dto/find-reminders.dto';
 
 @Injectable()
 export class RemindersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly schedulerService: SchedulerService,
+    private readonly timezoneService: TimezoneService,
   ) {}
 
   async create(userId: string, dto: CreateReminderDto) {
+    const userSettings = await this.prisma.userSetting.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        timezone: true,
+      },
+    });
+
+    if (!userSettings) {
+      throw new BadRequestException(
+        'Hatırlatıcı oluşturmak için kullanıcı timezone ayarı gereklidir.',
+      );
+    }
+
+    const eventDatetime = this.timezoneService.toUtc(
+      dto.eventDatetime,
+      userSettings.timezone,
+    );
+
+    const repeatUntil = dto.repeatUntil
+      ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
+      : undefined;
+
     const reminder = await this.prisma.reminder.create({
       data: {
         userId,
         title: dto.title.trim(),
         description: dto.description?.trim(),
-        eventDatetime: new Date(dto.eventDatetime),
+        eventDatetime: new Date(eventDatetime),
         repeatType: dto.repeatType,
-        repeatUntil: dto.repeatUntil
-          ? new Date(dto.repeatUntil)
-          : undefined,
+        repeatUntil: repeatUntil ? new Date(repeatUntil) : undefined,
         status: 'ACTIVE',
         isUrgent: dto.isUrgent ?? false,
       },
@@ -50,25 +79,42 @@ export class RemindersService {
       });
     }
 
-    console.log(
-  'Scheduler çağrılacak. Reminder ID:',
-  reminder.reminderId,
-);
-    // Scheduler entegrasyonu:
-    // Reminder ve setting kayıtları oluşturulduktan sonra
-    // Redis/Bull joblarını planlar.
-    await this.schedulerService.scheduleReminder(
-      reminder.reminderId,
-    );
+    await this.schedulerService.scheduleReminder(reminder.reminderId);
 
-    console.log('Scheduler çağrısı tamamlandı.');
     return this.findOne(userId, reminder.reminderId);
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, filterDto?: FindRemindersDto) {
+    const { search, isUrgent, isCompleted, startDate, endDate } =
+      filterDto || {};
+
     return this.prisma.reminder.findMany({
       where: {
         userId,
+        ...(isUrgent !== undefined ? { isUrgent } : {}),
+        ...(isCompleted !== undefined
+          ? {
+              status: isCompleted
+                ? ReminderStatus.COMPLETED
+                : { not: ReminderStatus.COMPLETED },
+            }
+          : {}),
+        ...(startDate || endDate
+          ? {
+              eventDatetime: {
+                ...(startDate ? { gte: new Date(startDate) } : {}),
+                ...(endDate ? { lte: new Date(endDate) } : {}),
+              },
+            }
+          : {}),
+        ...(search
+          ? {
+              OR: [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
       include: {
         pushNotifications: true,
@@ -80,37 +126,42 @@ export class RemindersService {
     });
   }
 
-  async findOne(
-    userId: string,
-    reminderId: string,
-  ) {
-    const reminder =
-      await this.prisma.reminder.findFirst({
-        where: {
-          reminderId,
-          userId,
-        },
-        include: {
-          pushNotifications: true,
-          voiceCallSettings: true,
-        },
-      });
+  async findOne(userId: string, reminderId: string) {
+    const reminder = await this.prisma.reminder.findFirst({
+      where: {
+        reminderId,
+        userId,
+      },
+      include: {
+        pushNotifications: true,
+        voiceCallSettings: true,
+      },
+    });
 
     if (!reminder) {
-      throw new NotFoundException(
-        'Hatırlatıcı bulunamadı.',
-      );
+      throw new NotFoundException('Hatırlatıcı bulunamadı.');
     }
 
     return reminder;
   }
 
-  async update(
-    userId: string,
-    reminderId: string,
-    dto: UpdateReminderDto,
-  ) {
+  async update(userId: string, reminderId: string, dto: UpdateReminderDto) {
     await this.findOne(userId, reminderId);
+
+    const userSettings = await this.prisma.userSetting.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        timezone: true,
+      },
+    });
+
+    if (!userSettings) {
+      throw new BadRequestException(
+        'Hatırlatıcı güncellemek için kullanıcı timezone ayarı gereklidir.',
+      );
+    }
 
     await this.prisma.reminder.update({
       where: {
@@ -120,51 +171,38 @@ export class RemindersService {
         ...(dto.title !== undefined && {
           title: dto.title.trim(),
         }),
-
         ...(dto.description !== undefined && {
           description: dto.description.trim(),
         }),
-
         ...(dto.eventDatetime !== undefined && {
-          eventDatetime: new Date(dto.eventDatetime),
+          eventDatetime: this.timezoneService.toUtc(
+            dto.eventDatetime,
+            userSettings.timezone,
+          ),
         }),
-
         ...(dto.repeatType !== undefined && {
           repeatType: dto.repeatType,
         }),
-
         ...(dto.repeatUntil !== undefined && {
           repeatUntil: dto.repeatUntil
-            ? new Date(dto.repeatUntil)
+            ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
             : null,
         }),
-
         ...(dto.isUrgent !== undefined && {
           isUrgent: dto.isUrgent,
         }),
       },
     });
 
-    // Scheduler entegrasyonu:
-    // Reminder zamanı değişmiş olabilir.
-    // Eski jobları kaldırıp yeni zamana göre tekrar oluşturur.
-    await this.schedulerService.rescheduleReminder(
-      reminderId,
-    );
+    await this.schedulerService.rescheduleReminder(reminderId);
 
     return this.findOne(userId, reminderId);
   }
 
-  async remove(
-    userId: string,
-    reminderId: string,
-  ) {
+  async remove(userId: string, reminderId: string) {
     await this.findOne(userId, reminderId);
 
-    // Reminder silinmeden önce Redis'teki jobları kaldır.
-    await this.schedulerService.cancelReminderJobs(
-      reminderId,
-    );
+    await this.schedulerService.cancelReminderJobs(reminderId);
 
     await this.prisma.reminder.delete({
       where: {

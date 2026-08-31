@@ -12,3 +12,8 @@ export const VOICE_JOB_STATE_PREFIXES = {
   PROCESSING: 'processing:',
   ATTEMPTING: 'attempting:',
 } as const;
+
+export const PUSH_JOB_STATE_PREFIXES = {
+  PROCESSING: 'processing:',
+  ATTEMPTING: 'attempting:',
+} as const;
