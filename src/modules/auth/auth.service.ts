@@ -26,6 +26,7 @@ import { PendingRegistrationStore } from './pending-registration.store';
 import { normalizePhoneNumber } from './utils/normalize-phone-number';
 import { ResendRegistrationOtpDto } from './dto/resend-registration-otp.dto';
 import { VerifyRegistrationDto } from './dto/verify-registration.dto';
+import { getUserInitials } from '../../common/utils/user-avatar.util';
 
 const hashToken = (token: string): string =>
   createHash('sha256').update(token, 'utf8').digest('hex');
@@ -190,6 +191,7 @@ export class AuthService {
         lastName: user.lastName,
         email: user.email,
         phoneNumber: user.phoneNumber,
+        initials: getUserInitials(user.firstName, user.lastName),
       },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,

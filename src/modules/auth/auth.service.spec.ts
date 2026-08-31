@@ -572,6 +572,7 @@ describe('AuthService', () => {
         lastName: 'User',
         email: dto.email,
         phoneNumber: '+905551112233',
+        initials: 'TU',
       },
       accessToken: 'access-token',
       refreshToken: 'refresh-token',
