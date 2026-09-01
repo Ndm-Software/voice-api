@@ -53,7 +53,7 @@ export class RemindersService {
         eventDatetime: new Date(eventDatetime),
         repeatType: dto.repeatType,
         repeatUntil: repeatUntil ? new Date(repeatUntil) : undefined,
-        status: 'ACTIVE',
+        status: ReminderStatus.ACTIVE,
         isUrgent: dto.isUrgent ?? false,
       },
     });
@@ -85,20 +85,16 @@ export class RemindersService {
   }
 
   async findAll(userId: string, filterDto?: FindRemindersDto) {
-    const { search, isUrgent, isCompleted, startDate, endDate } =
-      filterDto || {};
+    const { search, isUrgent, status, startDate, endDate } = filterDto || {};
 
     return this.prisma.reminder.findMany({
       where: {
         userId,
+
         ...(isUrgent !== undefined ? { isUrgent } : {}),
-        ...(isCompleted !== undefined
-          ? {
-              status: isCompleted
-                ? ReminderStatus.COMPLETED
-                : { not: ReminderStatus.COMPLETED },
-            }
-          : {}),
+
+        ...(status !== undefined ? { status } : {}),
+
         ...(startDate || endDate
           ? {
               eventDatetime: {
@@ -107,19 +103,32 @@ export class RemindersService {
               },
             }
           : {}),
+
         ...(search
           ? {
               OR: [
-                { title: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
+                {
+                  title: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  description: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
               ],
             }
           : {}),
       },
+
       include: {
         pushNotifications: true,
         voiceCallSettings: true,
       },
+
       orderBy: {
         eventDatetime: 'asc',
       },
@@ -171,25 +180,34 @@ export class RemindersService {
         ...(dto.title !== undefined && {
           title: dto.title.trim(),
         }),
+
         ...(dto.description !== undefined && {
           description: dto.description.trim(),
         }),
+
         ...(dto.eventDatetime !== undefined && {
           eventDatetime: this.timezoneService.toUtc(
             dto.eventDatetime,
             userSettings.timezone,
           ),
         }),
+
         ...(dto.repeatType !== undefined && {
           repeatType: dto.repeatType,
         }),
+
         ...(dto.repeatUntil !== undefined && {
           repeatUntil: dto.repeatUntil
             ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
             : null,
         }),
+
         ...(dto.isUrgent !== undefined && {
           isUrgent: dto.isUrgent,
+        }),
+
+        ...(dto.status !== undefined && {
+          status: dto.status,
         }),
       },
     });

@@ -1,5 +1,14 @@
-import { IsOptional, IsString, IsBoolean, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+} from 'class-validator';
+
 import { Transform } from 'class-transformer';
+
+import { ReminderStatus } from '../../../generated/prisma/enums';
 
 export class FindRemindersDto {
   @IsOptional()
@@ -16,13 +25,8 @@ export class FindRemindersDto {
   isUrgent?: boolean;
 
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === 'true' || value === true) return true;
-    if (value === 'false' || value === false) return false;
-    return value as boolean;
-  })
-  @IsBoolean()
-  isCompleted?: boolean;
+  @IsEnum(ReminderStatus)
+  status?: ReminderStatus;
 
   @IsOptional()
   @IsDateString()
