@@ -16,6 +16,8 @@ const requiredStringVariables = [
   'TWILIO_ACCOUNT_SID',
   'TWILIO_AUTH_TOKEN',
   'TWILIO_PHONE_NUMBER',
+  'TWILIO_VOICE_MEDIA_BASE_URL',
+  'AWS_REGION',
 ] as const;
 
 const durationPattern = /^\d+\s*(s|m|h|d)$/;
@@ -23,6 +25,8 @@ const fakeOtpCodePattern = /^\d{6}$/;
 const twilioAccountSidPattern = /^AC[0-9a-fA-F]{32}$/;
 const twilioVerifyServiceSidPattern = /^VA[0-9a-fA-F]{32}$/;
 const e164PhoneNumberPattern = /^\+[1-9]\d{7,14}$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const awsRegionPattern = /^[a-z]{2}(?:-[a-z0-9]+)+-\d+$/;
 const supportedNodeEnvironments = new Set([
   'development',
   'test',
@@ -36,6 +40,11 @@ const positiveIntegerVariables = [
   'OTP_PHONE_SEND_LIMIT',
   'OTP_IP_SEND_LIMIT',
 ] as const;
+const firebaseServiceAccountVariables = [
+  'FIREBASE_PROJECT_ID',
+  'FIREBASE_CLIENT_EMAIL',
+  'FIREBASE_PRIVATE_KEY',
+] as const;
 
 const isUrlWithProtocol = (value: string, protocols: string[]): boolean => {
   try {
@@ -43,6 +52,34 @@ const isUrlWithProtocol = (value: string, protocols: string[]): boolean => {
   } catch {
     return false;
   }
+};
+
+const normalizeOptionalString = (
+  config: Record<string, unknown>,
+  errors: string[],
+  variableName: string,
+): string | undefined => {
+  const value = config[variableName];
+
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value !== 'string') {
+    errors.push(`${variableName} must be a string`);
+    return undefined;
+  }
+
+  const normalizedValue = value.trim();
+
+  if (normalizedValue.length === 0) {
+    delete config[variableName];
+    return undefined;
+  }
+
+  config[variableName] = normalizedValue;
+
+  return normalizedValue;
 };
 
 export const validateEnvironment = (
@@ -60,6 +97,71 @@ export const validateEnvironment = (
     }
 
     config[variableName] = value.trim();
+  }
+
+  const firebaseConfiguration = firebaseServiceAccountVariables.map(
+    (variableName) => normalizeOptionalString(config, errors, variableName),
+  );
+  const configuredFirebaseVariableCount = firebaseConfiguration.filter(
+    (value) => value !== undefined,
+  ).length;
+
+  if (
+    configuredFirebaseVariableCount > 0 &&
+    configuredFirebaseVariableCount < firebaseServiceAccountVariables.length
+  ) {
+    firebaseServiceAccountVariables.forEach((variableName, index) => {
+      if (firebaseConfiguration[index] === undefined) {
+        errors.push(
+          `${variableName} is required when Firebase service account configuration is provided`,
+        );
+      }
+    });
+  }
+
+  const firebaseClientEmail = firebaseConfiguration[1];
+  const firebasePrivateKey = firebaseConfiguration[2];
+
+  if (firebaseClientEmail && !emailPattern.test(firebaseClientEmail)) {
+    errors.push('FIREBASE_CLIENT_EMAIL must be a valid email address');
+  }
+
+  if (firebasePrivateKey) {
+    config.FIREBASE_PRIVATE_KEY = firebasePrivateKey.replace(/\\n/g, '\n');
+  }
+
+  const awsRegion = normalizeOptionalString(config, errors, 'AWS_REGION');
+  const awsAccessKeyId = normalizeOptionalString(
+    config,
+    errors,
+    'AWS_ACCESS_KEY_ID',
+  );
+  const awsSecretAccessKey = normalizeOptionalString(
+    config,
+    errors,
+    'AWS_SECRET_ACCESS_KEY',
+  );
+
+  if (awsRegion && !awsRegionPattern.test(awsRegion)) {
+    errors.push('AWS_REGION has an invalid format');
+  }
+
+  if (awsAccessKeyId && !awsSecretAccessKey) {
+    errors.push(
+      'AWS_SECRET_ACCESS_KEY is required when AWS_ACCESS_KEY_ID is provided',
+    );
+  }
+
+  if (awsSecretAccessKey && !awsAccessKeyId) {
+    errors.push(
+      'AWS_ACCESS_KEY_ID is required when AWS_SECRET_ACCESS_KEY is provided',
+    );
+  }
+
+  if ((awsAccessKeyId || awsSecretAccessKey) && !awsRegion) {
+    errors.push(
+      'AWS_REGION is required when static AWS credentials are provided',
+    );
   }
 
   const nodeEnvironment =
@@ -246,6 +348,13 @@ export const validateEnvironment = (
     errors.push('TWILIO_PHONE_NUMBER must use E.164 format');
   }
 
+  const voiceMediaBaseUrl = config.TWILIO_VOICE_MEDIA_BASE_URL;
+  if (
+    typeof voiceMediaBaseUrl === 'string' &&
+    !isUrlWithProtocol(voiceMediaBaseUrl, ['https:'])
+  ) {
+    errors.push('TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL');
+  }
   if (errors.length > 0) {
     throw new Error(`Environment validation failed: ${errors.join('; ')}`);
   }

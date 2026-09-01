@@ -159,7 +159,6 @@ export class UsersService {
     await this.findById(userId);
 
     const normalizedEmail = dto.email?.trim().toLowerCase();
-    const normalizedPhoneNumber = dto.phoneNumber?.trim();
 
     if (normalizedEmail) {
       const existingEmail = await this.findByEmail(normalizedEmail);
@@ -170,33 +169,6 @@ export class UsersService {
         );
       }
     }
-
-    if (normalizedPhoneNumber) {
-      const existingPhone = await this.findByPhoneNumber(normalizedPhoneNumber);
-
-      if (existingPhone && existingPhone.userId !== userId) {
-        throw new ConflictException(
-          'Bu telefon numarası başka bir kullanıcı tarafından kullanılıyor.',
-        );
-      }
-    }
-
-    const currentUser = await this.prisma.user.findUnique({
-      where: {
-        userId,
-      },
-      select: {
-        phoneNumber: true,
-      },
-    });
-
-    if (!currentUser) {
-      throw new NotFoundException('Kullanıcı bulunamadı.');
-    }
-
-    const phoneNumberChanged =
-      normalizedPhoneNumber !== undefined &&
-      normalizedPhoneNumber !== currentUser.phoneNumber;
 
     const updatedUser = await this.prisma.user.update({
       where: {
@@ -218,22 +190,6 @@ export class UsersService {
         ...(normalizedEmail !== undefined
           ? {
               email: normalizedEmail,
-            }
-          : {}),
-
-        ...(normalizedPhoneNumber !== undefined
-          ? {
-              phoneNumber: normalizedPhoneNumber,
-            }
-          : {}),
-
-        /**
-         * Telefon numarası gerçekten değiştiyse
-         * yeni telefon tekrar OTP ile doğrulanmalıdır.
-         */
-        ...(phoneNumberChanged
-          ? {
-              phoneVerified: false,
             }
           : {}),
       },

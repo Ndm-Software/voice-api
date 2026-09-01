@@ -85,9 +85,10 @@ export class OtpSecurityService {
 
   async consumeVerificationAttempt(
     phoneNumber: string,
+    scope = 'default',
   ): Promise<OtpVerificationAttempt> {
     const count = await this.redisService.incrementWithExpiry(
-      this.createVerificationAttemptKey(phoneNumber),
+      this.createVerificationAttemptKey(phoneNumber, scope),
       this.pendingRegistrationTtlSeconds,
     );
 
@@ -107,14 +108,26 @@ export class OtpSecurityService {
     };
   }
 
-  clearVerificationAttempts(phoneNumber: string): Promise<void> {
+  clearVerificationAttempts(
+    phoneNumber: string,
+    scope = 'default',
+  ): Promise<void> {
     return this.redisService.delete(
-      this.createVerificationAttemptKey(phoneNumber),
+      this.createVerificationAttemptKey(phoneNumber, scope),
     );
   }
 
-  private createVerificationAttemptKey(phoneNumber: string): string {
-    return `otp:verify:attempt:v1:${this.createFingerprint(phoneNumber)}`;
+  getResendCooldownSeconds(): number {
+    return this.resendCooldownSeconds;
+  }
+
+  private createVerificationAttemptKey(
+    phoneNumber: string,
+    scope: string,
+  ): string {
+    return `otp:verify:attempt:v1:${this.createFingerprint(
+      `${scope}:${phoneNumber}`,
+    )}`;
   }
 
   private createFingerprint(value: string): string {

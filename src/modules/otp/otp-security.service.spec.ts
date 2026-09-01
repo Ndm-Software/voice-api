@@ -35,15 +35,24 @@ describe('OtpSecurityService', () => {
 
   beforeEach(() => {
     redisService = {
-      setIfAbsentWithExpiry: (
-        jest.fn() as jest.MockedFunction<RedisService['setIfAbsentWithExpiry']>
-      ).mockResolvedValue(true),
-      incrementWithExpiry: (
-        jest.fn() as jest.MockedFunction<RedisService['incrementWithExpiry']>
-      ).mockResolvedValue(1),
-      delete: (
-        jest.fn() as jest.MockedFunction<RedisService['delete']>
-      ).mockResolvedValue(undefined),
+      setIfAbsentWithExpiry: jest
+        .fn<
+          ReturnType<RedisService['setIfAbsentWithExpiry']>,
+          Parameters<RedisService['setIfAbsentWithExpiry']>
+        >()
+        .mockResolvedValue(true),
+      incrementWithExpiry: jest
+        .fn<
+          ReturnType<RedisService['incrementWithExpiry']>,
+          Parameters<RedisService['incrementWithExpiry']>
+        >()
+        .mockResolvedValue(1),
+      delete: jest
+        .fn<
+          ReturnType<RedisService['delete']>,
+          Parameters<RedisService['delete']>
+        >()
+        .mockResolvedValue(undefined),
     };
     const config = {
       'otp.pendingRegistrationTtlSeconds': 600,
@@ -124,5 +133,24 @@ describe('OtpSecurityService', () => {
     const [[key]] = redisService.delete.mock.calls;
     expect(key).toMatch(/^otp:verify:attempt:v1:[0-9a-f]{64}$/);
     expect(key).not.toContain(phoneNumber);
+  });
+
+  it('isolates verification attempts by workflow without exposing the scope', async () => {
+    await service.consumeVerificationAttempt(
+      phoneNumber,
+      'phone-change:user-id',
+    );
+    await service.clearVerificationAttempts(
+      phoneNumber,
+      'phone-change:user-id',
+    );
+
+    const verificationKey = redisService.incrementWithExpiry.mock.calls[0][0];
+    const cleanupKey = redisService.delete.mock.calls[0][0];
+
+    expect(verificationKey).toBe(cleanupKey);
+    expect(verificationKey).toMatch(/^otp:verify:attempt:v1:[0-9a-f]{64}$/);
+    expect(verificationKey).not.toContain('phone-change');
+    expect(verificationKey).not.toContain(phoneNumber);
   });
 });

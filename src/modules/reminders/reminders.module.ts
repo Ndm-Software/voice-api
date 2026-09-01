@@ -9,6 +9,5 @@ import { TimezoneService } from '../../common/services/timezone.service';
   imports: [PrismaModule, SchedulerModule],
   controllers: [RemindersController],
   providers: [RemindersService, TimezoneService],
-  
 })
 export class RemindersModule {}

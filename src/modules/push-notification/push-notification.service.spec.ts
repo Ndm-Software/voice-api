@@ -1,36 +1,34 @@
 import { PushNotificationService } from './push-notification.service';
 
-jest.mock(
-  'firebase-admin/app',
-  () => ({
-    applicationDefault: jest.fn(() => 'application-default'),
-    getApps: jest.fn(() => []),
-    initializeApp: jest.fn(),
-  }),
-  { virtual: true },
-);
+jest.mock('firebase-admin/app', () => ({
+  applicationDefault: jest.fn(() => 'application-default'),
+  getApps: jest.fn(() => []),
+  initializeApp: jest.fn(),
+}));
 
-jest.mock(
-  'firebase-admin/messaging',
-  () => {
-    const send = jest.fn();
+jest.mock('firebase-admin/messaging', () => {
+  const send = jest.fn();
 
-    return {
-      send,
-      getMessaging: jest.fn(() => ({ send })),
-    };
-  },
-  { virtual: true },
-);
+  return {
+    send,
+    getMessaging: jest.fn(() => ({ send })),
+  };
+});
 
 const appMock = jest.requireMock('firebase-admin/app') as unknown as {
+  applicationDefault: jest.Mock;
+  getApps: jest.Mock;
   initializeApp: jest.Mock;
 };
 const messagingMock = jest.requireMock(
   'firebase-admin/messaging',
 ) as unknown as {
+  getMessaging: jest.Mock;
   send: jest.Mock;
 };
+const mockApplicationDefault = appMock.applicationDefault;
+const mockGetApps = appMock.getApps;
+const mockGetMessaging = messagingMock.getMessaging;
 const mockInitializeApp = appMock.initializeApp;
 const mockSend = messagingMock.send;
 
@@ -38,6 +36,9 @@ describe('PushNotificationService', () => {
   beforeEach(() => {
     mockSend.mockReset();
     mockInitializeApp.mockReset();
+    mockApplicationDefault.mockReturnValue('application-default');
+    mockGetApps.mockReturnValue([]);
+    mockGetMessaging.mockReturnValue({ send: mockSend });
   });
 
   it('initializes Firebase and sends a notification to a device', async () => {

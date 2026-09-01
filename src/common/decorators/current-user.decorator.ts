@@ -3,23 +3,18 @@ import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 
 interface RequestWithUser {
   user?: AuthenticatedUser;
-  headers: Record<string, string | string[] | undefined>;
 }
 
 export const CurrentUser = createParamDecorator(
-  (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext): any => {
+  (
+    data: keyof AuthenticatedUser | undefined,
+    ctx: ExecutionContext,
+  ):
+    | AuthenticatedUser
+    | AuthenticatedUser[keyof AuthenticatedUser]
+    | undefined => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
-
-    const xUserHeader = request.headers['x-user'];
-    let user: AuthenticatedUser | undefined = request.user;
-
-    if (!user && typeof xUserHeader === 'string') {
-      try {
-        user = JSON.parse(xUserHeader) as AuthenticatedUser;
-      } catch {
-        user = undefined;
-      }
-    }
+    const user = request.user;
 
     if (data && user) {
       return user[data];

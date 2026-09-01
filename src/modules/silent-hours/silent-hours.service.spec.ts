@@ -69,7 +69,7 @@ describe('SilentHoursService', () => {
     });
   });
 
-  it('does not return another user\'s silent hour', async () => {
+  it("does not return another user's silent hour", async () => {
     prisma.silentHour.findFirst.mockResolvedValue(null);
 
     await expect(service.findOne(userId, silentHourId)).rejects.toBeInstanceOf(

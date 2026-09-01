@@ -1,54 +1,32 @@
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
-import {
-  DateTime,
-  IANAZone,
-} from 'luxon';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { DateTime, IANAZone } from 'luxon';
 
 @Injectable()
 export class TimezoneService {
-  toUtc(
-    dateTime: string,
-    timezone: string,
-  ): Date {
+  toUtc(dateTime: string, timezone: string): Date {
     if (!IANAZone.isValidZone(timezone)) {
-      throw new BadRequestException(
-        `Geçersiz timezone: ${timezone}`,
-      );
+      throw new BadRequestException(`Geçersiz timezone: ${timezone}`);
     }
 
-    const parsed = DateTime.fromISO(
-      dateTime,
-      {
-        zone: timezone,
-      },
-    );
+    const parsed = DateTime.fromISO(dateTime, {
+      zone: timezone,
+    });
 
     if (!parsed.isValid) {
-      throw new BadRequestException(
-        'Geçersiz tarih/saat.',
-      );
+      throw new BadRequestException('Geçersiz tarih/saat.');
     }
 
     return parsed.toUTC().toJSDate();
   }
 
-  toLocal(
-    date: Date,
-    timezone: string,
-  ): string {
+  toLocal(date: Date, timezone: string): string {
     if (!IANAZone.isValidZone(timezone)) {
-      throw new BadRequestException(
-        `Geçersiz timezone: ${timezone}`,
-      );
+      throw new BadRequestException(`Geçersiz timezone: ${timezone}`);
     }
 
-    const localDateTime = DateTime
-      .fromJSDate(date, {
-        zone: 'utc',
-      })
+    const localDateTime = DateTime.fromJSDate(date, {
+      zone: 'utc',
+    })
       .setZone(timezone)
       .toISO();
 

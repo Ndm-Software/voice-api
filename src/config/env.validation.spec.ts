@@ -20,6 +20,8 @@ const validEnvironment = {
   TWILIO_ACCOUNT_SID: `AC${'0'.repeat(32)}`,
   TWILIO_AUTH_TOKEN: 'twilio-auth-token',
   TWILIO_PHONE_NUMBER: '+10000000000',
+  TWILIO_VOICE_MEDIA_BASE_URL: 'https://api.example.com/api/voice-call/media',
+  AWS_REGION: 'eu-central-1',
 };
 
 describe('validateEnvironment', () => {
@@ -106,6 +108,11 @@ describe('validateEnvironment', () => {
       'TWILIO_PHONE_NUMBER',
       '05551112233',
       'TWILIO_PHONE_NUMBER must use E.164 format',
+    ],
+    [
+      'TWILIO_VOICE_MEDIA_BASE_URL',
+      'http://api.example.com/api/voice-call/media',
+      'TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL',
     ],
     [
       'OTP_MAX_VERIFY_ATTEMPTS',
@@ -248,5 +255,98 @@ describe('validateEnvironment', () => {
     });
 
     expect(result.OTP_PROVIDER).toBe('twilio');
+  });
+
+  it('accepts role-based AWS configuration without static credentials', () => {
+    const result = validateEnvironment({
+      ...validEnvironment,
+      AWS_REGION: ' eu-central-1 ',
+    });
+
+    expect(result.AWS_REGION).toBe('eu-central-1');
+    expect(result.AWS_ACCESS_KEY_ID).toBeUndefined();
+    expect(result.AWS_SECRET_ACCESS_KEY).toBeUndefined();
+  });
+
+  it('requires an AWS region for the configured Polly integration', () => {
+    const input: Record<string, unknown> = { ...validEnvironment };
+    delete input.AWS_REGION;
+
+    expect(() => validateEnvironment(input)).toThrow('AWS_REGION is required');
+  });
+
+  it('normalizes complete Firebase and static AWS configuration', () => {
+    const result = validateEnvironment({
+      ...validEnvironment,
+      FIREBASE_PROJECT_ID: ' voice-project ',
+      FIREBASE_CLIENT_EMAIL: ' firebase@example.com ',
+      FIREBASE_PRIVATE_KEY: ' line-one\\nline-two ',
+      AWS_REGION: ' eu-central-1 ',
+      AWS_ACCESS_KEY_ID: ' access-key ',
+      AWS_SECRET_ACCESS_KEY: ' secret-key ',
+    });
+
+    expect(result.FIREBASE_PROJECT_ID).toBe('voice-project');
+    expect(result.FIREBASE_CLIENT_EMAIL).toBe('firebase@example.com');
+    expect(result.FIREBASE_PRIVATE_KEY).toBe('line-one\nline-two');
+    expect(result.AWS_REGION).toBe('eu-central-1');
+    expect(result.AWS_ACCESS_KEY_ID).toBe('access-key');
+    expect(result.AWS_SECRET_ACCESS_KEY).toBe('secret-key');
+  });
+
+  it('rejects partial Firebase service account configuration', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment,
+        FIREBASE_PROJECT_ID: 'voice-project',
+      }),
+    ).toThrow(
+      'FIREBASE_CLIENT_EMAIL is required when Firebase service account configuration is provided',
+    );
+  });
+
+  it('rejects an invalid Firebase client email', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment,
+        FIREBASE_PROJECT_ID: 'voice-project',
+        FIREBASE_CLIENT_EMAIL: 'invalid',
+        FIREBASE_PRIVATE_KEY: 'private-key',
+      }),
+    ).toThrow('FIREBASE_CLIENT_EMAIL must be a valid email address');
+  });
+
+  it('rejects incomplete static AWS credentials', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment,
+        AWS_REGION: 'eu-central-1',
+        AWS_ACCESS_KEY_ID: 'access-key',
+      }),
+    ).toThrow(
+      'AWS_SECRET_ACCESS_KEY is required when AWS_ACCESS_KEY_ID is provided',
+    );
+  });
+
+  it('requires an AWS region with static credentials', () => {
+    const input: Record<string, unknown> = {
+      ...validEnvironment,
+      AWS_ACCESS_KEY_ID: 'access-key',
+      AWS_SECRET_ACCESS_KEY: 'secret-key',
+    };
+    delete input.AWS_REGION;
+
+    expect(() => validateEnvironment(input)).toThrow(
+      'AWS_REGION is required when static AWS credentials are provided',
+    );
+  });
+
+  it('rejects an invalid AWS region', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment,
+        AWS_REGION: 'invalid',
+      }),
+    ).toThrow('AWS_REGION has an invalid format');
   });
 });

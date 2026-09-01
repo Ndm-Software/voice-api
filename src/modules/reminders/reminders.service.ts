@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ReminderStatus } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SchedulerService } from '../../scheduler/scheduler.service';
 import { TimezoneService } from '../../common/services/timezone.service';
@@ -91,7 +92,13 @@ export class RemindersService {
       where: {
         userId,
         ...(isUrgent !== undefined ? { isUrgent } : {}),
-        ...(isCompleted !== undefined ? { isCompleted } : {}),
+        ...(isCompleted !== undefined
+          ? {
+              status: isCompleted
+                ? ReminderStatus.COMPLETED
+                : { not: ReminderStatus.COMPLETED },
+            }
+          : {}),
         ...(startDate || endDate
           ? {
               eventDatetime: {

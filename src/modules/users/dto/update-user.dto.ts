@@ -2,7 +2,6 @@ import {
   IsEmail,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -36,12 +35,4 @@ export class UpdateUserDto {
     },
   )
   email?: string;
-
-  @IsOptional()
-  @IsString()
-  @Matches(/^\+?[1-9]\d{7,14}$/, {
-    message:
-      'Telefon numarası ülke koduyla birlikte geçerli formatta olmalıdır.',
-  })
-  phoneNumber?: string;
 }

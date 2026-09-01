@@ -45,18 +45,49 @@ describe('UserSettingsService', () => {
     });
 
     expect(languagesService.findById).toHaveBeenCalledWith(languageId);
-    expect(prisma.userSetting.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { userId },
-        create: expect.objectContaining({
-          userId,
-          timezone: 'Europe/Istanbul',
-          province: 'Istanbul',
-          emergencyOverride: false,
-        }),
-        update: expect.objectContaining({ emergencyOverride: false }),
-      }),
-    );
+    expect(prisma.userSetting.upsert).toHaveBeenCalledWith({
+      where: { userId },
+      create: {
+        userId,
+        languageId,
+        timezone: 'Europe/Istanbul',
+        province: 'Istanbul',
+        notificationsEnabled: true,
+        defaultPushBefore: 10,
+        defaultCallBefore: 20,
+        emergencyOverride: false,
+      },
+      update: {
+        languageId,
+        timezone: 'Europe/Istanbul',
+        province: 'Istanbul',
+        notificationsEnabled: true,
+        defaultPushBefore: 10,
+        defaultCallBefore: 20,
+        emergencyOverride: false,
+      },
+      select: {
+        settingId: true,
+        userId: true,
+        languageId: true,
+        timezone: true,
+        province: true,
+        notificationsEnabled: true,
+        defaultPushBefore: true,
+        defaultCallBefore: true,
+        emergencyOverride: true,
+        createdAt: true,
+        updatedAt: true,
+        language: {
+          select: {
+            languageId: true,
+            code: true,
+            name: true,
+            voiceName: true,
+          },
+        },
+      },
+    });
   });
 
   it('rejects invalid timezones before writing settings', async () => {

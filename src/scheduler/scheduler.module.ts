@@ -1,19 +1,22 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ReminderHistoryModule } from '../modules/reminder-history/reminder-history.module';
-import { SchedulerService } from './scheduler.service';
+
+import { PollyModule } from '../integrations/polly/polly.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { PushNotificationModule } from '../modules/push-notification/push-notification.module';
-import { PushNotificationProcessor } from './processors/push-notification.processor';
-import { VoiceCallProcessor } from './processors/voice-call.processor';
+import { ReminderHistoryModule } from '../modules/reminder-history/reminder-history.module';
 import { VoiceCallModule } from '../modules/voice-call/voice-call.module';
 import { QUEUE_NAMES } from './constants/queue.constants';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PushNotificationProcessor } from './processors/push-notification.processor';
+import { VoiceCallProcessor } from './processors/voice-call.processor';
+import { SchedulerService } from './scheduler.service';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    PollyModule,
     VoiceCallModule,
     PushNotificationModule,
     ReminderHistoryModule,
@@ -25,9 +28,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.getOrThrow<string>('REDIS_HOST'),
-          port: Number(
-            configService.getOrThrow<string>('REDIS_PORT'),
-          ),
+          port: Number(configService.getOrThrow<string>('REDIS_PORT')),
         },
       }),
     }),
@@ -42,11 +43,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     ),
   ],
 
-  providers: [
-    SchedulerService,
-    PushNotificationProcessor,
-    VoiceCallProcessor,
-  ],
+  providers: [SchedulerService, PushNotificationProcessor, VoiceCallProcessor],
 
   exports: [SchedulerService],
 })

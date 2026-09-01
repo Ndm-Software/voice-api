@@ -1,20 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import {
-  applicationDefault,
-  getApps,
-  initializeApp,
-} from 'firebase-admin/app';
+import { applicationDefault, getApps, initializeApp } from 'firebase-admin/app';
 
-import {
-  getMessaging,
-  Message,
-} from 'firebase-admin/messaging';
+import { getMessaging, Message } from 'firebase-admin/messaging';
 
 @Injectable()
 export class PushNotificationService {
-  private readonly logger =
-    new Logger(PushNotificationService.name);
+  private readonly logger = new Logger(PushNotificationService.name);
 
   constructor() {
     if (getApps().length === 0) {
@@ -22,9 +14,7 @@ export class PushNotificationService {
         credential: applicationDefault(),
       });
 
-      this.logger.log(
-        'Firebase Admin SDK başlatıldı.',
-      );
+      this.logger.log('Firebase Admin SDK başlatıldı.');
     }
   }
 
@@ -48,12 +38,9 @@ export class PushNotificationService {
         },
       };
 
-      const response =
-        await getMessaging().send(message);
+      const response = await getMessaging().send(message);
 
-      this.logger.log(
-        `Push notification gönderildi. Message ID: ${response}`,
-      );
+      this.logger.log(`Push notification gönderildi. Message ID: ${response}`);
 
       return {
         success: true,
@@ -61,13 +48,9 @@ export class PushNotificationService {
       };
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Unknown Firebase error';
+        error instanceof Error ? error.message : 'Unknown Firebase error';
 
-      this.logger.error(
-        `Push notification gönderilemedi: ${errorMessage}`,
-      );
+      this.logger.error('Push notification gönderilemedi.');
 
       return {
         success: false,

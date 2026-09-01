@@ -112,7 +112,7 @@ describe('RemindersService', () => {
       where: {
         userId,
         isUrgent: true,
-        isCompleted: false,
+        status: { not: 'COMPLETED' },
         eventDatetime: {
           gte: new Date('2026-08-24T00:00:00.000Z'),
           lte: new Date('2026-08-25T00:00:00.000Z'),

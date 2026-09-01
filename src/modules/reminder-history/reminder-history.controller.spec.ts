@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ExecutionContext, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { Application } from 'express';
@@ -8,7 +8,14 @@ import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.in
 import { ReminderHistoryController } from './reminder-history.controller';
 import { ReminderHistoryService } from './reminder-history.service';
 
+interface RequestWithUser {
+  user?: AuthenticatedUser;
+}
+
 describe('ReminderHistoryController', () => {
+  const user: AuthenticatedUser = {
+    userId: '22222222-2222-4222-8222-222222222222',
+  };
   let app: Application;
   let service: {
     findAll: jest.Mock;
@@ -38,7 +45,12 @@ describe('ReminderHistoryController', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({
-        canActivate: () => true,
+        canActivate: (context: ExecutionContext) => {
+          const request = context.switchToHttp().getRequest<RequestWithUser>();
+          request.user = user;
+
+          return true;
+        },
       })
       .compile();
 
@@ -80,13 +92,8 @@ describe('ReminderHistoryController', () => {
   });
 
   it('passes valid UUID query values to the service', async () => {
-    const user: AuthenticatedUser = {
-      userId: '22222222-2222-4222-8222-222222222222',
-    };
-
     await request(app)
       .get('/reminder-history?reminderId=33333333-3333-4333-8333-333333333333')
-      .set('x-user', JSON.stringify(user))
       .expect(200);
 
     expect(service.findAll).toHaveBeenCalledWith(

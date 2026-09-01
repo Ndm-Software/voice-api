@@ -27,9 +27,11 @@ describe('UsersController account deletion (e2e)', () => {
   let server: App;
   let accessToken: string;
   let remove: jest.MockedFunction<UsersService['remove']>;
+  let update: jest.MockedFunction<UsersService['update']>;
 
   beforeAll(async () => {
     remove = jest.fn() as jest.MockedFunction<UsersService['remove']>;
+    update = jest.fn() as jest.MockedFunction<UsersService['update']>;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
@@ -56,7 +58,7 @@ describe('UsersController account deletion (e2e)', () => {
           provide: UsersService,
           useValue: {
             findById: jest.fn(),
-            update: jest.fn(),
+            update,
             remove,
           },
         },
@@ -87,6 +89,7 @@ describe('UsersController account deletion (e2e)', () => {
 
   beforeEach(() => {
     remove.mockReset();
+    update.mockReset();
     remove.mockResolvedValue({
       message: 'Kullanıcı hesabı başarıyla silindi.',
     });
@@ -100,6 +103,16 @@ describe('UsersController account deletion (e2e)', () => {
     await request(server).delete('/api/users/me').expect(401);
 
     expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('rejects phone changes outside the OTP workflow', async () => {
+    await request(server)
+      .patch('/api/users/me')
+      .set('Cookie', `accessToken=${accessToken}`)
+      .send({ phoneNumber: '+905551112233' })
+      .expect(400);
+
+    expect(update).not.toHaveBeenCalled();
   });
 
   it('allows credentialed DELETE preflight from the configured frontend', async () => {
