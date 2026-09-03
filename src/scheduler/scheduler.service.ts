@@ -397,11 +397,13 @@ export class SchedulerService {
     const targetDate = new Date(
       eventDatetime.getTime() - minutesBefore * 60 * 1000,
     );
+
     const adjustedTargetDate = await this.adjustExecutionTimeForSilentHours(
       userId,
       targetDate,
       isUrgent,
     );
+
     const delay = adjustedTargetDate.getTime() - Date.now();
 
     if (delay <= 0) {
@@ -412,6 +414,7 @@ export class SchedulerService {
     }
 
     const jobId = `voice-${callId}-${adjustedTargetDate.getTime()}`;
+
     const job = await this.voiceCallQueue.add(
       JOB_NAMES.MAKE_VOICE_CALL,
       {
@@ -423,19 +426,30 @@ export class SchedulerService {
       {
         jobId,
         delay,
-        attempts: 3,
+
+        // İlk deneme + maksimum 1 retry = toplam 2 deneme
+        attempts: 2,
+
+        // İlk arama başarısız olursa 2 dakika sonra tekrar dene
         backoff: {
-          type: 'exponential',
-          delay: 5000,
+          type: 'fixed',
+          delay: 2 * 60 * 1000,
         },
+
         removeOnComplete: true,
         removeOnFail: false,
       },
     );
 
     const scheduledSetting = await this.prisma.voiceCallSetting.updateMany({
-      where: { callId, enabled: true, jobId: previousJobId },
-      data: { jobId: String(job.id) },
+      where: {
+        callId,
+        enabled: true,
+        jobId: previousJobId,
+      },
+      data: {
+        jobId: String(job.id),
+      },
     });
 
     if (scheduledSetting.count !== 1) {

@@ -233,21 +233,37 @@ describe('VoiceCallProcessor', () => {
     expect(voiceCallService.makeCall).not.toHaveBeenCalled();
   });
 
-  it('does not retry after an ambiguous Twilio call failure', async () => {
+  it('retries after a Twilio call failure', async () => {
     const error = new Error('safe Twilio error');
+
     voiceCallService.makeCall.mockRejectedValueOnce(error);
 
     await expect(processor.handleVoiceCall(job)).rejects.toBe(error);
-    expect(jobDiscard).toHaveBeenCalledTimes(1);
-    expect(voiceSettingUpdateMany).toHaveBeenCalledWith({
+
+    expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
+
+    expect(reminderHistoryService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reminderId: 'reminder-id',
+        historyType: 'VOICE_CALL',
+        status: 'FAILED',
+        provider: 'TWILIO',
+        attempt: 1,
+      }),
+    );
+
+    expect(voiceSettingUpdateMany).toHaveBeenLastCalledWith({
       where: {
         callId: 'setting-id',
+        enabled: true,
         jobId: 'attempting:voice-call-job',
       },
       data: {
-        jobId: null,
+        jobId: 'voice-call-job',
       },
     });
+
+    expect(jobDiscard).not.toHaveBeenCalled();
   });
 
   it('does not repeat a call whose Twilio attempt had already started', async () => {

@@ -94,10 +94,10 @@ describe('SchedulerService voice call scheduling', () => {
       {
         jobId,
         delay: 45 * 60 * 1000,
-        attempts: 3,
+        attempts: 2,
         backoff: {
-          type: 'exponential',
-          delay: 5000,
+          type: 'fixed',
+          delay: 2 * 60 * 1000,
         },
         removeOnComplete: true,
         removeOnFail: false,

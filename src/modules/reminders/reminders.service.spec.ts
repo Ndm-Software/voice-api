@@ -102,31 +102,44 @@ describe('RemindersService', () => {
     await service.findAll(userId, {
       search: 'medicine',
       isUrgent: true,
-      isCompleted: false,
+      status: 'ACTIVE',
       startDate: '2026-08-24T00:00:00.000Z',
       endDate: '2026-08-25T00:00:00.000Z',
     });
 
     const findManyCalls = prisma.reminder.findMany.mock.calls as unknown[][];
+
     expect(findManyCalls[0][0]).toEqual({
       where: {
         userId,
         isUrgent: true,
-        status: { not: 'COMPLETED' },
+        status: 'ACTIVE',
         eventDatetime: {
           gte: new Date('2026-08-24T00:00:00.000Z'),
           lte: new Date('2026-08-25T00:00:00.000Z'),
         },
         OR: [
-          { title: { contains: 'medicine', mode: 'insensitive' } },
-          { description: { contains: 'medicine', mode: 'insensitive' } },
+          {
+            title: {
+              contains: 'medicine',
+              mode: 'insensitive',
+            },
+          },
+          {
+            description: {
+              contains: 'medicine',
+              mode: 'insensitive',
+            },
+          },
         ],
       },
       include: {
         pushNotifications: true,
         voiceCallSettings: true,
       },
-      orderBy: { eventDatetime: 'asc' },
+      orderBy: {
+        eventDatetime: 'asc',
+      },
     });
   });
 

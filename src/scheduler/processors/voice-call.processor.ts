@@ -166,18 +166,46 @@ export class VoiceCallProcessor {
     try {
       await this.voiceCallService.makeCall(reminder.user.phoneNumber, speech);
     } catch (error: unknown) {
+      const currentAttempt = job.attemptsMade + 1;
+
       await this.recordHistory(
         reminder.reminderId,
         HistoryStatus.FAILED,
-        job.attemptsMade + 1,
+        currentAttempt,
         'Sesli arama sağlayıcısı çağrıyı başlatamadı.',
       );
 
-      await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
-      await job.discard();
+      if (currentAttempt < 2) {
+        // Bull retry'ın aynı job ile tekrar çalışabilmesi için
+        // setting'i tekrar job'ın kendisine bağlıyoruz.
+        await this.prisma.voiceCallSetting.updateMany({
+          where: {
+            callId: voiceSetting.callId,
+            enabled: true,
+            jobId: attemptingJobId,
+          },
+          data: {
+            jobId: jobId,
+          },
+        });
 
-      this.logger.error('Voice call job başarısız oldu.');
-      throw error;
+        this.logger.warn(
+          `Voice call başarısız oldu. ${currentAttempt + 1}. deneme ` +
+            `2 dakika sonra yapılacak. Reminder ID: ${reminder.reminderId}`,
+        );
+
+        // Bull attempts: 2 + fixed backoff: 2 dakika
+        // sayesinde aynı job 2 dakika sonra tekrar çalışacak.
+        throw error;
+      }
+
+      // İkinci deneme de başarısız olduysa artık retry yok.
+      await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
+
+      this.logger.error(
+        `Voice call maksimum deneme sayısına ulaştı. ` +
+          `Reminder ID: ${reminder.reminderId}`,
+      );
     }
 
     await this.recordHistory(
