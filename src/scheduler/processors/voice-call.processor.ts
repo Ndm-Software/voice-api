@@ -206,6 +206,8 @@ export class VoiceCallProcessor {
         `Voice call maksimum deneme sayısına ulaştı. ` +
           `Reminder ID: ${reminder.reminderId}`,
       );
+
+      return;
     }
 
     await this.recordHistory(

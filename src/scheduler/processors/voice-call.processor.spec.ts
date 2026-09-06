@@ -59,7 +59,7 @@ describe('VoiceCallProcessor', () => {
       settingId: 'setting-id',
       scheduledFor: '2026-08-21T09:00:00.000Z',
     },
-  } as Job<ReminderJobData>;
+  } as unknown as Job<ReminderJobData>;
 
   const speech: SynthesizedSpeech = {
     audio: Buffer.from('polly-audio'),
