@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PushNotificationSettingsService } from './push-notification-settings.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 
 describe('PushNotificationSettingsService', () => {
   let service: PushNotificationSettingsService;
@@ -20,6 +21,12 @@ describe('PushNotificationSettingsService', () => {
               update: jest.fn(),
               delete: jest.fn(),
             },
+          },
+        },
+        {
+          provide: SchedulerService,
+          useValue: {
+            rescheduleReminder: jest.fn(),
           },
         },
       ],

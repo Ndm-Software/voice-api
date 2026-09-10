@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VoiceCallSettingsService } from './voice-call-settings.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 
 describe('VoiceCallSettingsService', () => {
   let service: VoiceCallSettingsService;
@@ -20,6 +21,12 @@ describe('VoiceCallSettingsService', () => {
               update: jest.fn(),
               delete: jest.fn(),
             },
+          },
+        },
+        {
+          provide: SchedulerService,
+          useValue: {
+            rescheduleReminder: jest.fn(),
           },
         },
       ],
