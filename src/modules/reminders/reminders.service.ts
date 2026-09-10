@@ -44,6 +44,24 @@ export class RemindersService {
     const repeatUntil = dto.repeatUntil
       ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
       : undefined;
+    const eventDate = new Date(eventDatetime);
+    const repeatUntilDate = repeatUntil ? new Date(repeatUntil) : undefined;
+
+    if (eventDate <= new Date()) {
+      throw new BadRequestException('Hatırlatıcı tarihi gelecekte olmalıdır.');
+    }
+
+    if (dto.repeatType === 'NONE' && dto.repeatUntil) {
+      throw new BadRequestException(
+        'Tek seferlik hatırlatıcı için repeatUntil gönderilemez.',
+      );
+    }
+
+    if (repeatUntilDate && repeatUntilDate < eventDate) {
+      throw new BadRequestException(
+        'repeatUntil, eventDatetime tarihinden önce olamaz.',
+      );
+    }
 
     const reminder = await this.prisma.reminder.create({
       data: {
@@ -155,7 +173,7 @@ export class RemindersService {
   }
 
   async update(userId: string, reminderId: string, dto: UpdateReminderDto) {
-    await this.findOne(userId, reminderId);
+    const currentReminder = await this.findOne(userId, reminderId);
 
     const userSettings = await this.prisma.userSetting.findUnique({
       where: {
@@ -171,7 +189,37 @@ export class RemindersService {
         'Hatırlatıcı güncellemek için kullanıcı timezone ayarı gereklidir.',
       );
     }
+    const eventDatetime = dto.eventDatetime
+      ? this.timezoneService.toUtc(dto.eventDatetime, userSettings.timezone)
+      : currentReminder.eventDatetime.toISOString();
 
+    const repeatType = dto.repeatType ?? currentReminder.repeatType;
+
+    const repeatUntil =
+      dto.repeatUntil !== undefined
+        ? dto.repeatUntil
+          ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
+          : null
+        : currentReminder.repeatUntil?.toISOString();
+
+    const eventDate = new Date(eventDatetime);
+    const repeatUntilDate = repeatUntil ? new Date(repeatUntil) : null;
+
+    if (eventDate <= new Date()) {
+      throw new BadRequestException('Hatırlatıcı tarihi gelecekte olmalıdır.');
+    }
+
+    if (repeatType === 'NONE' && repeatUntil) {
+      throw new BadRequestException(
+        'Tek seferlik hatırlatıcı için repeatUntil gönderilemez.',
+      );
+    }
+
+    if (repeatUntilDate && repeatUntilDate < eventDate) {
+      throw new BadRequestException(
+        'repeatUntil, eventDatetime tarihinden önce olamaz.',
+      );
+    }
     await this.prisma.reminder.update({
       where: {
         reminderId,
@@ -185,21 +233,14 @@ export class RemindersService {
           description: dto.description.trim(),
         }),
 
-        ...(dto.eventDatetime !== undefined && {
-          eventDatetime: this.timezoneService.toUtc(
-            dto.eventDatetime,
-            userSettings.timezone,
-          ),
-        }),
+        eventDatetime: new Date(eventDatetime),
 
         ...(dto.repeatType !== undefined && {
           repeatType: dto.repeatType,
         }),
 
         ...(dto.repeatUntil !== undefined && {
-          repeatUntil: dto.repeatUntil
-            ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
-            : null,
+          repeatUntil: repeatUntil ? new Date(repeatUntil) : null,
         }),
 
         ...(dto.isUrgent !== undefined && {

@@ -10,6 +10,7 @@ describe('RemindersService', () => {
   const userId = '11111111-1111-4111-8111-111111111111';
   const reminderId = '22222222-2222-4222-8222-222222222222';
   const reminder = { reminderId, userId };
+
   let prisma: {
     userSetting: { findUnique: jest.Mock };
     reminder: {
@@ -22,11 +23,13 @@ describe('RemindersService', () => {
     pushNotificationSetting: { create: jest.Mock };
     voiceCallSetting: { create: jest.Mock };
   };
+
   let schedulerService: {
     scheduleReminder: jest.Mock;
     rescheduleReminder: jest.Mock;
     cancelReminderJobs: jest.Mock;
   };
+
   let timezoneService: { toUtc: jest.Mock };
   let service: RemindersService;
 
@@ -44,17 +47,24 @@ describe('RemindersService', () => {
         update: jest.fn().mockResolvedValue(reminder),
         delete: jest.fn().mockResolvedValue(reminder),
       },
-      pushNotificationSetting: { create: jest.fn().mockResolvedValue({}) },
-      voiceCallSetting: { create: jest.fn().mockResolvedValue({}) },
+      pushNotificationSetting: {
+        create: jest.fn().mockResolvedValue({}),
+      },
+      voiceCallSetting: {
+        create: jest.fn().mockResolvedValue({}),
+      },
     };
+
     schedulerService = {
       scheduleReminder: jest.fn().mockResolvedValue(undefined),
       rescheduleReminder: jest.fn().mockResolvedValue(undefined),
       cancelReminderJobs: jest.fn().mockResolvedValue(undefined),
     };
+
     timezoneService = {
       toUtc: jest.fn((value: string) => `${value}.000Z`),
     };
+
     service = new RemindersService(
       prisma as unknown as PrismaService,
       schedulerService as unknown as SchedulerService,
@@ -66,9 +76,9 @@ describe('RemindersService', () => {
     await service.create(userId, {
       title: '  Take medicine  ',
       description: '  After lunch  ',
-      eventDatetime: '2026-08-24T15:00:00',
+      eventDatetime: '2026-09-20T15:00:00',
       repeatType: RepeatType.DAILY,
-      repeatUntil: '2026-08-31T15:00:00',
+      repeatUntil: '2026-09-30T15:00:00',
       isUrgent: true,
       pushMinutesBefore: 10,
       voiceMinutesBefore: 20,
@@ -79,13 +89,14 @@ describe('RemindersService', () => {
         userId,
         title: 'Take medicine',
         description: 'After lunch',
-        eventDatetime: new Date('2026-08-24T15:00:00.000Z'),
+        eventDatetime: new Date('2026-09-20T15:00:00.000Z'),
         repeatType: RepeatType.DAILY,
-        repeatUntil: new Date('2026-08-31T15:00:00.000Z'),
+        repeatUntil: new Date('2026-09-30T15:00:00.000Z'),
         status: 'ACTIVE',
         isUrgent: true,
       },
     });
+
     expect(prisma.pushNotificationSetting.create).toHaveBeenCalledWith({
       data: {
         reminderId,
@@ -94,7 +105,9 @@ describe('RemindersService', () => {
         enabled: true,
       },
     });
+
     expect(prisma.voiceCallSetting.create).toHaveBeenCalled();
+
     expect(schedulerService.scheduleReminder).toHaveBeenCalledWith(reminderId);
   });
 
@@ -103,8 +116,8 @@ describe('RemindersService', () => {
       search: 'medicine',
       isUrgent: true,
       status: 'ACTIVE',
-      startDate: '2026-08-24T00:00:00.000Z',
-      endDate: '2026-08-25T00:00:00.000Z',
+      startDate: '2026-09-20T00:00:00.000Z',
+      endDate: '2026-09-21T00:00:00.000Z',
     });
 
     const findManyCalls = prisma.reminder.findMany.mock.calls as unknown[][];
@@ -115,8 +128,8 @@ describe('RemindersService', () => {
         isUrgent: true,
         status: 'ACTIVE',
         eventDatetime: {
-          gte: new Date('2026-08-24T00:00:00.000Z'),
-          lte: new Date('2026-08-25T00:00:00.000Z'),
+          gte: new Date('2026-09-20T00:00:00.000Z'),
+          lte: new Date('2026-09-21T00:00:00.000Z'),
         },
         OR: [
           {
@@ -145,15 +158,17 @@ describe('RemindersService', () => {
 
   it('requires timezone settings and protects missing reminders', async () => {
     prisma.userSetting.findUnique.mockResolvedValue(null);
+
     await expect(
       service.create(userId, {
         title: 'Reminder',
-        eventDatetime: '2026-08-24T15:00:00',
+        eventDatetime: '2026-09-20T15:00:00',
         repeatType: RepeatType.DAILY,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     prisma.reminder.findFirst.mockResolvedValue(null);
+
     await expect(service.findOne(userId, reminderId)).rejects.toBeInstanceOf(
       NotFoundException,
     );
@@ -162,25 +177,30 @@ describe('RemindersService', () => {
   it('updates and removes reminders through the scheduler', async () => {
     await service.update(userId, reminderId, {
       title: '  Updated  ',
-      eventDatetime: '2026-08-24T16:00:00',
+      eventDatetime: '2026-09-21T16:00:00',
       repeatUntil: undefined,
     });
+
     const updateCalls = prisma.reminder.update.mock.calls as unknown[][];
+
     expect(updateCalls[0][0]).toEqual({
       where: { reminderId },
       data: {
         title: 'Updated',
-        eventDatetime: '2026-08-24T16:00:00.000Z',
+        eventDatetime: new Date('2026-09-21T16:00:00.000Z'),
       },
     });
+
     expect(schedulerService.rescheduleReminder).toHaveBeenCalledWith(
       reminderId,
     );
 
     await service.remove(userId, reminderId);
+
     expect(schedulerService.cancelReminderJobs).toHaveBeenCalledWith(
       reminderId,
     );
+
     expect(prisma.reminder.delete).toHaveBeenCalledWith({
       where: { reminderId },
     });

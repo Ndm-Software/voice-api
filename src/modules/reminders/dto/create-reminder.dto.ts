@@ -16,17 +16,17 @@ export class CreateReminderDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  title: string;
+  title!: string;
 
   @IsString()
   @IsOptional()
   description?: string;
 
   @IsDateString()
-  eventDatetime: string;
+  eventDatetime!: string;
 
   @IsEnum(RepeatType)
-  repeatType: RepeatType;
+  repeatType!: RepeatType;
 
   @IsDateString()
   @IsOptional()
