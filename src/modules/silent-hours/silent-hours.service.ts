@@ -8,6 +8,7 @@ import {
 import { DayOfWeek } from '../../generated/prisma/enums';
 import type { SilentHourModel } from '../../generated/prisma/models/SilentHour';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 import { CreateSilentHourDto } from './dto/create-silent-hour.dto/create-silent-hour.dto';
 import { UpdateSilentHourDto } from './dto/update-silent-hour.dto/update-silent-hour.dto';
 
@@ -23,7 +24,10 @@ const DAY_ORDER: Record<DayOfWeek, number> = {
 
 @Injectable()
 export class SilentHoursService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   private timeToDate(time: string): Date {
     return new Date(`1970-01-01T${time}:00.000Z`);
@@ -57,6 +61,8 @@ export class SilentHoursService {
         silentEnd: this.timeToDate(dto.silentEnd),
       },
     });
+
+    await this.rescheduleUserReminders(userId);
 
     return this.formatResponse(silentHour);
   }
@@ -106,8 +112,10 @@ export class SilentHoursService {
     }
 
     const dayOfWeek = dto.dayOfWeek ?? existing.dayOfWeek;
+
     const silentStart =
       dto.silentStart ?? this.dateToTime(existing.silentStart);
+
     const silentEnd = dto.silentEnd ?? this.dateToTime(existing.silentEnd);
 
     this.validateTimeRange(silentStart, silentEnd);
@@ -146,6 +154,8 @@ export class SilentHoursService {
       },
     });
 
+    await this.rescheduleUserReminders(userId);
+
     return this.formatResponse(silentHour);
   }
 
@@ -166,6 +176,8 @@ export class SilentHoursService {
         silentHourId,
       },
     });
+
+    await this.rescheduleUserReminders(userId);
 
     return {
       success: true,
@@ -190,6 +202,22 @@ export class SilentHoursService {
       throw new BadRequestException(
         'silentStart and silentEnd must be different.',
       );
+    }
+  }
+
+  private async rescheduleUserReminders(userId: string): Promise<void> {
+    const reminders = await this.prisma.reminder.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        reminderId: true,
+      },
+    });
+
+    for (const reminder of reminders) {
+      await this.schedulerService.rescheduleReminder(reminder.reminderId);
     }
   }
 }

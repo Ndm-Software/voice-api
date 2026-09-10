@@ -6,6 +6,7 @@ import {
 import { IANAZone } from 'luxon';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 import { LanguagesService } from '../languages/languages.service';
 import { SaveUserSettingsDto } from './dto/save-user-settings.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
@@ -44,6 +45,7 @@ export class UserSettingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly languagesService: LanguagesService,
+    private readonly schedulerService: SchedulerService,
   ) {}
 
   /**
@@ -78,7 +80,7 @@ export class UserSettingsService {
     const normalizedTimezone = dto.timezone.trim();
     const normalizedProvince = dto.province.trim();
 
-    return this.prisma.userSetting.upsert({
+    const settings = await this.prisma.userSetting.upsert({
       where: {
         userId,
       },
@@ -116,6 +118,10 @@ export class UserSettingsService {
 
       select: userSettingsSelect,
     });
+
+    await this.rescheduleUserReminders(userId);
+
+    return settings;
   }
 
   /**
@@ -132,7 +138,7 @@ export class UserSettingsService {
       this.validateTimezone(dto.timezone);
     }
 
-    return this.prisma.userSetting.update({
+    const settings = await this.prisma.userSetting.update({
       where: {
         userId,
       },
@@ -177,6 +183,30 @@ export class UserSettingsService {
 
       select: userSettingsSelect,
     });
+
+    await this.rescheduleUserReminders(userId);
+
+    return settings;
+  }
+
+  /**
+   * Kullanıcının aktif reminder'larını güncel
+   * timezone / kullanıcı ayarlarıyla yeniden planlar.
+   */
+  private async rescheduleUserReminders(userId: string): Promise<void> {
+    const reminders = await this.prisma.reminder.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        reminderId: true,
+      },
+    });
+
+    for (const reminder of reminders) {
+      await this.schedulerService.rescheduleReminder(reminder.reminderId);
+    }
   }
 
   /**
