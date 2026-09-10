@@ -17,6 +17,7 @@ const requiredStringVariables = [
   'TWILIO_AUTH_TOKEN',
   'TWILIO_PHONE_NUMBER',
   'TWILIO_VOICE_MEDIA_BASE_URL',
+  'TWILIO_VOICE_STATUS_CALLBACK_URL',
   'AWS_REGION',
 ] as const;
 
@@ -27,11 +28,13 @@ const twilioVerifyServiceSidPattern = /^VA[0-9a-fA-F]{32}$/;
 const e164PhoneNumberPattern = /^\+[1-9]\d{7,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const awsRegionPattern = /^[a-z]{2}(?:-[a-z0-9]+)+-\d+$/;
+
 const supportedNodeEnvironments = new Set([
   'development',
   'test',
   'production',
 ]);
+
 const positiveIntegerVariables = [
   'OTP_PENDING_REGISTRATION_TTL_SECONDS',
   'OTP_RESEND_COOLDOWN_SECONDS',
@@ -40,6 +43,7 @@ const positiveIntegerVariables = [
   'OTP_PHONE_SEND_LIMIT',
   'OTP_IP_SEND_LIMIT',
 ] as const;
+
 const firebaseServiceAccountVariables = [
   'FIREBASE_PROJECT_ID',
   'FIREBASE_CLIENT_EMAIL',
@@ -102,6 +106,7 @@ export const validateEnvironment = (
   const firebaseConfiguration = firebaseServiceAccountVariables.map(
     (variableName) => normalizeOptionalString(config, errors, variableName),
   );
+
   const configuredFirebaseVariableCount = firebaseConfiguration.filter(
     (value) => value !== undefined,
   ).length;
@@ -120,6 +125,7 @@ export const validateEnvironment = (
   }
 
   const firebaseClientEmail = firebaseConfiguration[1];
+
   const firebasePrivateKey = firebaseConfiguration[2];
 
   if (firebaseClientEmail && !emailPattern.test(firebaseClientEmail)) {
@@ -131,11 +137,13 @@ export const validateEnvironment = (
   }
 
   const awsRegion = normalizeOptionalString(config, errors, 'AWS_REGION');
+
   const awsAccessKeyId = normalizeOptionalString(
     config,
     errors,
     'AWS_ACCESS_KEY_ID',
   );
+
   const awsSecretAccessKey = normalizeOptionalString(
     config,
     errors,
@@ -168,6 +176,7 @@ export const validateEnvironment = (
     typeof config.NODE_ENV === 'string'
       ? config.NODE_ENV.trim().toLowerCase()
       : '';
+
   const otpProvider =
     typeof config.OTP_PROVIDER === 'string'
       ? config.OTP_PROVIDER.trim().toLowerCase()
@@ -247,6 +256,7 @@ export const validateEnvironment = (
   }
 
   const databaseUrl = config.DATABASE_URL;
+
   if (
     typeof databaseUrl === 'string' &&
     !isUrlWithProtocol(databaseUrl, ['postgres:', 'postgresql:'])
@@ -255,6 +265,7 @@ export const validateEnvironment = (
   }
 
   const frontendUrl = config.FRONTEND_URL;
+
   if (
     typeof frontendUrl === 'string' &&
     !isUrlWithProtocol(frontendUrl, ['http:', 'https:'])
@@ -263,6 +274,7 @@ export const validateEnvironment = (
   }
 
   const redisUrl = config.REDIS_URL;
+
   let parsedRedisUrl: URL | undefined;
 
   if (
@@ -309,6 +321,7 @@ export const validateEnvironment = (
   const pendingRegistrationTtl = Number(
     config.OTP_PENDING_REGISTRATION_TTL_SECONDS,
   );
+
   const resendCooldown = Number(config.OTP_RESEND_COOLDOWN_SECONDS);
 
   if (
@@ -333,6 +346,7 @@ export const validateEnvironment = (
   }
 
   const accountSid = config.TWILIO_ACCOUNT_SID;
+
   if (
     typeof accountSid === 'string' &&
     !twilioAccountSidPattern.test(accountSid)
@@ -341,6 +355,7 @@ export const validateEnvironment = (
   }
 
   const twilioPhoneNumber = config.TWILIO_PHONE_NUMBER;
+
   if (
     typeof twilioPhoneNumber === 'string' &&
     !e164PhoneNumberPattern.test(twilioPhoneNumber)
@@ -349,12 +364,23 @@ export const validateEnvironment = (
   }
 
   const voiceMediaBaseUrl = config.TWILIO_VOICE_MEDIA_BASE_URL;
+
   if (
     typeof voiceMediaBaseUrl === 'string' &&
     !isUrlWithProtocol(voiceMediaBaseUrl, ['https:'])
   ) {
     errors.push('TWILIO_VOICE_MEDIA_BASE_URL must be an HTTPS URL');
   }
+
+  const voiceStatusCallbackUrl = config.TWILIO_VOICE_STATUS_CALLBACK_URL;
+
+  if (
+    typeof voiceStatusCallbackUrl === 'string' &&
+    !isUrlWithProtocol(voiceStatusCallbackUrl, ['https:'])
+  ) {
+    errors.push('TWILIO_VOICE_STATUS_CALLBACK_URL must be an HTTPS URL');
+  }
+
   if (errors.length > 0) {
     throw new Error(`Environment validation failed: ${errors.join('; ')}`);
   }
