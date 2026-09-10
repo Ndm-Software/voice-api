@@ -9,6 +9,9 @@ export interface TwilioVoiceClient {
       readonly to: string;
       readonly from: string;
       readonly twiml: string;
+      readonly statusCallback?: string;
+      readonly statusCallbackEvent?: string[];
+      readonly statusCallbackMethod?: string;
     }): Promise<TwilioVoiceCallResource>;
   };
 }

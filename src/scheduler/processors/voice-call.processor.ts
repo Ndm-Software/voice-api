@@ -3,21 +3,33 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
 import { HistoryStatus } from '../../generated/prisma/client';
+
 import {
   InvalidPollyTextError,
   UnsupportedPollyLanguageError,
 } from '../../integrations/polly/polly.errors';
 import { PollyService } from '../../integrations/polly/polly.service';
 import type { SynthesizedSpeech } from '../../integrations/polly/polly.types';
+
+import {
+  TWILIO_VOICE_CALL_KEY_PREFIX,
+  TWILIO_VOICE_CALL_TTL_SECONDS,
+} from '../../integrations/twilio/twilio-voice.constants';
+
+import { RedisService } from '../../integrations/redis/redis.service';
+
 import { PushNotificationService } from '../../modules/push-notification/push-notification.service';
 import { ReminderHistoryService } from '../../modules/reminder-history/reminder-history.service';
 import { VoiceCallService } from '../../modules/voice-call/voice-call.service';
+
 import { PrismaService } from '../../prisma/prisma.service';
+
 import {
   JOB_NAMES,
   QUEUE_NAMES,
   VOICE_JOB_STATE_PREFIXES,
 } from '../constants/queue.constants';
+
 import { ReminderJobData } from '../interfaces/reminder-job-data.interface';
 import { SchedulerService } from '../scheduler.service';
 
@@ -27,6 +39,7 @@ export class VoiceCallProcessor {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly redisService: RedisService,
     private readonly pollyService: PollyService,
     private readonly voiceCallService: VoiceCallService,
     private readonly schedulerService: SchedulerService,
@@ -39,13 +52,17 @@ export class VoiceCallProcessor {
     this.logger.log(`Voice call job başladı. Job ID: ${job.id}`);
 
     const reminder = await this.prisma.reminder.findUnique({
-      where: { reminderId: job.data.reminderId },
+      where: {
+        reminderId: job.data.reminderId,
+      },
       include: {
         user: {
           include: {
             devices: true,
             userSetting: {
-              include: { language: true },
+              include: {
+                language: true,
+              },
             },
           },
         },
@@ -66,47 +83,73 @@ export class VoiceCallProcessor {
     const voiceSetting = reminder.voiceCallSettings.find(
       (setting) => setting.callId === job.data.settingId,
     );
+
     if (!voiceSetting || !voiceSetting.enabled) {
       this.logger.warn(`Voice call setting aktif değil: ${job.data.settingId}`);
       return;
     }
 
     const jobId = String(job.id);
+
     const processingJobId = `${VOICE_JOB_STATE_PREFIXES.PROCESSING}${jobId}`;
+
     const attemptingJobId = `${VOICE_JOB_STATE_PREFIXES.ATTEMPTING}${jobId}`;
+
     const scheduledFor =
       job.data.scheduledFor ?? reminder.eventDatetime.toISOString();
+
     const recoveringProcessingJob = voiceSetting.jobId === processingJobId;
 
+    /*
+     * Aynı job tekrar worker'a geldiğinde,
+     * daha önce çağrı başlatılmışsa tekrar çağrı başlatma.
+     */
     if (voiceSetting.jobId === attemptingJobId) {
       if (job.attemptsMade === 0) {
         await job.discard();
+
         throw new Error('Voice call attempt has already started');
       }
 
       await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
+
       return;
     }
 
+    /*
+     * Job'ın gerçekten bu setting'e ait olup olmadığını kontrol ediyoruz.
+     */
     if (voiceSetting.jobId !== jobId && !recoveringProcessingJob) {
       this.logger.warn(`Voice call job geçerli değil. Job ID: ${jobId}`);
+
       return;
     }
 
+    /*
+     * Job ownership claim.
+     */
     const claimedSetting = await this.prisma.voiceCallSetting.updateMany({
       where: {
         callId: voiceSetting.callId,
         enabled: true,
         jobId: recoveringProcessingJob ? processingJobId : jobId,
       },
-      data: { jobId: processingJobId },
+      data: {
+        jobId: processingJobId,
+      },
     });
+
     if (claimedSetting.count !== 1) {
       this.logger.warn(`Voice call job daha önce işlendi. Job ID: ${jobId}`);
+
       return;
     }
 
+    /*
+     * Kullanıcının dil ayarını kontrol et.
+     */
     const languageCode = reminder.user.userSetting?.language.code;
+
     if (!languageCode) {
       await this.finishPermanentFailure(
         job,
@@ -117,12 +160,17 @@ export class VoiceCallProcessor {
         scheduledFor,
         'Ses dili yapılandırması bulunamadı.',
       );
+
       throw new Error('Voice call language configuration is missing');
     }
 
+    /*
+     * Polly'ye gönderilecek metin.
+     */
     const message = reminder.description
       ? `${reminder.title}. ${reminder.description}`
       : reminder.title;
+
     let speech: SynthesizedSpeech;
 
     try {
@@ -147,27 +195,52 @@ export class VoiceCallProcessor {
       }
 
       this.logger.error('Voice call speech synthesis failed.');
+
       throw error;
     }
 
+    /*
+     * Artık gerçekten Twilio çağrı denemesine geçiyoruz.
+     */
     const callAttempt = await this.prisma.voiceCallSetting.updateMany({
       where: {
         callId: voiceSetting.callId,
         enabled: true,
         jobId: processingJobId,
       },
-      data: { jobId: attemptingJobId },
+      data: {
+        jobId: attemptingJobId,
+      },
     });
+
     if (callAttempt.count !== 1) {
       this.logger.warn(`Voice call job sahipliği kaybedildi. Job ID: ${jobId}`);
+
       return;
     }
 
-    try {
-      await this.voiceCallService.makeCall(reminder.user.phoneNumber, speech);
-    } catch (error: unknown) {
-      const currentAttempt = job.attemptsMade + 1;
+    const currentAttempt = job.data.attempt ?? job.attemptsMade + 1;
 
+    let callResult: {
+      callSid: string;
+      status: string;
+    };
+
+    try {
+      callResult = await this.voiceCallService.makeCall(
+        reminder.user.phoneNumber,
+        speech,
+      );
+    } catch (error: unknown) {
+      /*
+       * Twilio API çağrıyı başlatamadı.
+       *
+       * Bu durumda gerçek bir CallSid olmadığı için
+       * webhook bekleyemeyiz.
+       *
+       * İlk denemeyse Bull 2 dakika sonra aynı job'ı
+       * tekrar çalıştıracak.
+       */
       await this.recordHistory(
         reminder.reminderId,
         HistoryStatus.FAILED,
@@ -176,8 +249,6 @@ export class VoiceCallProcessor {
       );
 
       if (currentAttempt < 2) {
-        // Bull retry'ın aynı job ile tekrar çalışabilmesi için
-        // setting'i tekrar job'ın kendisine bağlıyoruz.
         await this.prisma.voiceCallSetting.updateMany({
           where: {
             callId: voiceSetting.callId,
@@ -190,16 +261,18 @@ export class VoiceCallProcessor {
         });
 
         this.logger.warn(
-          `Voice call başarısız oldu. ${currentAttempt + 1}. deneme ` +
-            `2 dakika sonra yapılacak. Reminder ID: ${reminder.reminderId}`,
+          `Voice call başarısız oldu. ` +
+            `Sonraki deneme 2 dakika sonra yapılacak. ` +
+            `Reminder ID: ${reminder.reminderId}`,
         );
 
-        // Bull attempts: 2 + fixed backoff: 2 dakika
-        // sayesinde aynı job 2 dakika sonra tekrar çalışacak.
         throw error;
       }
 
-      // İkinci deneme de başarısız olduysa artık retry yok.
+      /*
+       * İkinci deneme de API seviyesinde başarısızsa
+       * artık yeni çağrı başlatma.
+       */
       await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
 
       this.logger.error(
@@ -210,18 +283,61 @@ export class VoiceCallProcessor {
       return;
     }
 
-    await this.recordHistory(
+    /*
+     * Twilio çağrıyı başlattı.
+     *
+     * BURADA SUCCESS YAZMIYORUZ.
+     *
+     * Çünkü client.calls.create() başarılı olması,
+     * kullanıcının telefonu açtığı anlamına gelmez.
+     *
+     * Gerçek sonucu Twilio status callback üzerinden
+     * öğreneceğiz.
+     */
+    const historyId = await this.recordHistory(
       reminder.reminderId,
-      HistoryStatus.SUCCESS,
-      job.attemptsMade + 1,
+      HistoryStatus.PENDING,
+      currentAttempt,
     );
+
+    await this.redisService.setWithExpiry(
+      this.createCallKey(callResult.callSid),
+      JSON.stringify({
+        reminderId: reminder.reminderId,
+        userId: reminder.userId,
+        settingId: voiceSetting.callId,
+        scheduledFor,
+        attempt: currentAttempt,
+        jobId,
+        historyId,
+      }),
+      TWILIO_VOICE_CALL_TTL_SECONDS,
+    );
+
     await this.sendCallStartedNotifications(
       reminder.reminderId,
       reminder.title,
       reminder.user.devices,
     );
-    await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
-    this.logger.log('Voice call başarıyla başlatıldı.');
+
+    this.logger.log(
+      `Voice call başlatıldı. ` +
+        `Call SID: ${callResult.callSid}, ` +
+        `Attempt: ${currentAttempt}`,
+    );
+
+    /*
+     * DİKKAT:
+     *
+     * Burada finalizeOccurrence YOK.
+     *
+     * Reminder ancak Twilio callback sonucundan sonra
+     * tamamlanacak veya retry edilecek.
+     */
+  }
+
+  private createCallKey(callSid: string): string {
+    return `${TWILIO_VOICE_CALL_KEY_PREFIX}${callSid}`;
   }
 
   private async finishPermanentFailure(
@@ -234,8 +350,14 @@ export class VoiceCallProcessor {
     errorMessage: string,
   ): Promise<void> {
     const permanentAttempt = await this.prisma.voiceCallSetting.updateMany({
-      where: { callId, enabled: true, jobId: processingJobId },
-      data: { jobId: attemptingJobId },
+      where: {
+        callId,
+        enabled: true,
+        jobId: processingJobId,
+      },
+      data: {
+        jobId: attemptingJobId,
+      },
     });
 
     if (permanentAttempt.count !== 1) {
@@ -245,10 +367,12 @@ export class VoiceCallProcessor {
     await this.recordHistory(
       reminderId,
       HistoryStatus.FAILED,
-      job.attemptsMade + 1,
+      job.data.attempt ?? job.attemptsMade + 1,
       errorMessage,
     );
+
     await this.finalizeOccurrence(job, scheduledFor, attemptingJobId);
+
     await job.discard();
   }
 
@@ -257,9 +381,9 @@ export class VoiceCallProcessor {
     status: HistoryStatus,
     attempt: number,
     errorMessage?: string,
-  ): Promise<void> {
+  ): Promise<string | null> {
     try {
-      await this.reminderHistoryService.create({
+      const history = await this.reminderHistoryService.create({
         reminderId,
         historyType: 'VOICE_CALL',
         status,
@@ -268,11 +392,15 @@ export class VoiceCallProcessor {
         attempt,
         errorMessage,
       });
+
+      return history.historyId;
     } catch (error: unknown) {
       this.logger.error(
         'Voice call geçmişi kaydedilemedi.',
         error instanceof Error ? error.stack : undefined,
       );
+
+      return null;
     }
   }
 
@@ -315,12 +443,15 @@ export class VoiceCallProcessor {
       scheduledFor,
       job.data.settingId,
     );
+
     await this.prisma.voiceCallSetting.updateMany({
       where: {
         callId: job.data.settingId,
         jobId: attemptingJobId,
       },
-      data: { jobId: null },
+      data: {
+        jobId: null,
+      },
     });
   }
 }

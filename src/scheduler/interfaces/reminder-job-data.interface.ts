@@ -3,4 +3,5 @@ export interface ReminderJobData {
   userId: string;
   settingId: string;
   scheduledFor?: string;
+  attempt?: number;
 }

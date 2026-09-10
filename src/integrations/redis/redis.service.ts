@@ -41,7 +41,9 @@ export class RedisService implements OnModuleInit, OnApplicationShutdown {
     value: string,
     ttlSeconds: number,
   ): Promise<void> {
-    await this.client.set(key, value, { EX: ttlSeconds });
+    await this.client.set(key, value, {
+      EX: ttlSeconds,
+    });
   }
 
   async setIfAbsentWithExpiry(
@@ -72,6 +74,11 @@ export class RedisService implements OnModuleInit, OnApplicationShutdown {
 
   get(key: string): Promise<string | null> {
     return this.client.get(key);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const value = await this.client.get(key);
+    return value !== null;
   }
 
   async delete(key: string): Promise<void> {

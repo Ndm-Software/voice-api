@@ -5,12 +5,15 @@ import { ConfigService } from '@nestjs/config';
 import twilio from 'twilio';
 
 import { RedisService } from '../redis/redis.service';
+
 import type { TwilioVoiceClient } from './twilio-voice-client.interface';
+
 import {
   TWILIO_VOICE_CLIENT,
   TWILIO_VOICE_MEDIA_KEY_PREFIX,
   TWILIO_VOICE_MEDIA_TTL_SECONDS,
 } from './twilio-voice.constants';
+
 import {
   InvalidTwilioVoiceCallError,
   TwilioVoiceCallError,
@@ -42,6 +45,7 @@ export class TwilioVoiceService {
     }
 
     const token = randomBytes(32).toString('base64url');
+
     try {
       await this.redisService.setWithExpiry(
         this.createMediaKey(token),
@@ -50,12 +54,21 @@ export class TwilioVoiceService {
       );
 
       const voiceResponse = new twilio.twiml.VoiceResponse();
+
       voiceResponse.play(this.createMediaUrl(token));
 
       const call = await this.client.calls.create({
         to: phoneNumber,
         from: this.configService.getOrThrow<string>('twilio.phoneNumber'),
         twiml: voiceResponse.toString(),
+
+        statusCallback: this.configService.getOrThrow<string>(
+          'twilio.voiceStatusCallbackUrl',
+        ),
+
+        statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+
+        statusCallbackMethod: 'POST',
       });
 
       return {
@@ -84,20 +97,25 @@ export class TwilioVoiceService {
       return null;
     }
 
-    const audio = Buffer.from(encodedAudio, 'base64');
-
-    return audio.byteLength > 0 ? audio : null;
+    return Buffer.from(encodedAudio, 'base64');
   }
 
-  private createMediaUrl(token: string): string {
-    const baseUrl = this.configService
-      .getOrThrow<string>('twilio.voiceMediaBaseUrl')
-      .replace(/\/+$/, '');
-
-    return `${baseUrl}/${token}`;
+  async validateMediaToken(token: string): Promise<boolean> {
+    return (
+      mediaTokenPattern.test(token) &&
+      (await this.redisService.exists(this.createMediaKey(token))) === true
+    );
   }
 
   private createMediaKey(token: string): string {
     return `${TWILIO_VOICE_MEDIA_KEY_PREFIX}${token}`;
+  }
+
+  private createMediaUrl(token: string): string {
+    const baseUrl = this.configService.getOrThrow<string>(
+      'twilio.voiceMediaBaseUrl',
+    );
+
+    return `${baseUrl}${token}`;
   }
 }
