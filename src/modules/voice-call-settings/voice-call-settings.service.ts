@@ -1,18 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 import { CreateVoiceCallSettingDto } from './dto/create-voice-call-setting.dto';
 import { UpdateVoiceCallSettingDto } from './dto/update-voice-call-setting.dto';
 
 @Injectable()
 export class VoiceCallSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
-  async create(dto: CreateVoiceCallSettingDto) {
-    // hatırlatıcı var mı diye kontrol eder eğer varsa ayarı oluşturur
-    const reminder = await this.prisma.reminder.findUnique({
+  async create(dto: CreateVoiceCallSettingDto, userId: string) {
+    const reminder = await this.prisma.reminder.findFirst({
       where: {
         reminderId: dto.reminderId,
+        userId,
       },
     });
 
@@ -28,24 +32,34 @@ export class VoiceCallSettingsService {
       },
     });
 
+    await this.schedulerService.rescheduleReminder(dto.reminderId);
+
     return {
       message: 'Voice call setting created successfully.',
       voiceCallSetting,
     };
   }
 
-  async findAll() {
-    return await this.prisma.voiceCallSetting.findMany({
+  async findAll(userId: string) {
+    return this.prisma.voiceCallSetting.findMany({
+      where: {
+        reminder: {
+          userId,
+        },
+      },
       include: {
         reminder: true,
       },
     });
   }
 
-  async findOne(id: string) {
-    const voiceCallSetting = await this.prisma.voiceCallSetting.findUnique({
+  async findOne(id: string, userId: string) {
+    const voiceCallSetting = await this.prisma.voiceCallSetting.findFirst({
       where: {
         callId: id,
+        reminder: {
+          userId,
+        },
       },
       include: {
         reminder: true,
@@ -59,18 +73,24 @@ export class VoiceCallSettingsService {
     return voiceCallSetting;
   }
 
-  async update(id: string, dto: UpdateVoiceCallSettingDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateVoiceCallSettingDto, userId: string) {
+    const setting = await this.findOne(id, userId);
 
     const updatedVoiceCallSetting = await this.prisma.voiceCallSetting.update({
       where: {
         callId: id,
       },
       data: {
-        minutesBefore: dto.minutesBefore,
-        enabled: dto.enabled,
+        ...(dto.minutesBefore !== undefined && {
+          minutesBefore: dto.minutesBefore,
+        }),
+        ...(dto.enabled !== undefined && {
+          enabled: dto.enabled,
+        }),
       },
     });
+
+    await this.schedulerService.rescheduleReminder(setting.reminderId);
 
     return {
       message: 'Voice call setting updated successfully.',
@@ -78,14 +98,16 @@ export class VoiceCallSettingsService {
     };
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, userId: string) {
+    const setting = await this.findOne(id, userId);
 
     await this.prisma.voiceCallSetting.delete({
       where: {
         callId: id,
       },
     });
+
+    await this.schedulerService.rescheduleReminder(setting.reminderId);
 
     return {
       message: 'Voice call setting deleted successfully.',

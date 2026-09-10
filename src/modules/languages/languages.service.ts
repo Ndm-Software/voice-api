@@ -70,9 +70,7 @@ export class LanguagesService {
     });
 
     if (existingLanguage) {
-      throw new ConflictException(
-        'Bu dil koduyla kayıtlı bir dil zaten var.',
-      );
+      throw new ConflictException('Bu dil koduyla kayıtlı bir dil zaten var.');
     }
 
     return this.prisma.language.create({
@@ -85,26 +83,19 @@ export class LanguagesService {
     });
   }
 
-  async update(
-    languageId: string,
-    dto: UpdateLanguageDto,
-  ) {
+  async update(languageId: string, dto: UpdateLanguageDto) {
     await this.findById(languageId);
 
     const normalizedCode = dto.code?.trim().toUpperCase();
 
     if (normalizedCode) {
-      const existingLanguage =
-        await this.prisma.language.findUnique({
-          where: {
-            code: normalizedCode,
-          },
-        });
+      const existingLanguage = await this.prisma.language.findUnique({
+        where: {
+          code: normalizedCode,
+        },
+      });
 
-      if (
-        existingLanguage &&
-        existingLanguage.languageId !== languageId
-      ) {
+      if (existingLanguage && existingLanguage.languageId !== languageId) {
         throw new ConflictException(
           'Bu dil kodu başka bir dil tarafından kullanılıyor.',
         );
@@ -141,12 +132,11 @@ export class LanguagesService {
   async remove(languageId: string) {
     await this.findById(languageId);
 
-    const relatedSettingsCount =
-      await this.prisma.userSetting.count({
-        where: {
-          languageId,
-        },
-      });
+    const relatedSettingsCount = await this.prisma.userSetting.count({
+      where: {
+        languageId,
+      },
+    });
 
     if (relatedSettingsCount > 0) {
       throw new ConflictException(

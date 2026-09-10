@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 
 import { CreatePushNotificationSettingDto } from './dto/create-push-notification-setting.dto';
 import { UpdatePushNotificationSettingDto } from './dto/update-push-notification-setting.dto';
 
 @Injectable()
 export class PushNotificationSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   async create(userId: string, dto: CreatePushNotificationSettingDto) {
     const reminder = await this.prisma.reminder.findFirst({
@@ -21,7 +25,7 @@ export class PushNotificationSettingsService {
       throw new NotFoundException('Hatırlatıcı bulunamadı.');
     }
 
-    return this.prisma.pushNotificationSetting.create({
+    const setting = await this.prisma.pushNotificationSetting.create({
       data: {
         reminderId: dto.reminderId,
         minutesBefore: dto.minutesBefore,
@@ -29,6 +33,10 @@ export class PushNotificationSettingsService {
         enabled: true,
       },
     });
+
+    await this.schedulerService.rescheduleReminder(dto.reminderId);
+
+    return setting;
   }
 
   async findAll(userId: string) {
@@ -72,9 +80,9 @@ export class PushNotificationSettingsService {
     pushId: string,
     dto: UpdatePushNotificationSettingDto,
   ) {
-    await this.findOne(userId, pushId);
+    const setting = await this.findOne(userId, pushId);
 
-    return this.prisma.pushNotificationSetting.update({
+    const updatedSetting = await this.prisma.pushNotificationSetting.update({
       where: {
         pushId,
       },
@@ -82,22 +90,27 @@ export class PushNotificationSettingsService {
         ...(dto.minutesBefore !== undefined && {
           minutesBefore: dto.minutesBefore,
         }),
-
         ...(dto.enabled !== undefined && {
           enabled: dto.enabled,
         }),
       },
     });
+
+    await this.schedulerService.rescheduleReminder(setting.reminderId);
+
+    return updatedSetting;
   }
 
   async remove(userId: string, pushId: string) {
-    await this.findOne(userId, pushId);
+    const setting = await this.findOne(userId, pushId);
 
     await this.prisma.pushNotificationSetting.delete({
       where: {
         pushId,
       },
     });
+
+    await this.schedulerService.rescheduleReminder(setting.reminderId);
 
     return {
       message: 'Push notification ayarı başarıyla silindi.',
