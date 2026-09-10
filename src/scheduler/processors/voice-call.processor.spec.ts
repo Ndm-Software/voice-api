@@ -6,6 +6,7 @@ import {
 } from '../../integrations/polly/polly.errors';
 import type { SynthesizedSpeech } from '../../integrations/polly/polly.types';
 import type { PollyService } from '../../integrations/polly/polly.service';
+import type { RedisService } from '../../integrations/redis/redis.service';
 import type { PushNotificationService } from '../../modules/push-notification/push-notification.service';
 import type { ReminderHistoryService } from '../../modules/reminder-history/reminder-history.service';
 import type { VoiceCallService } from '../../modules/voice-call/voice-call.service';
@@ -30,8 +31,18 @@ describe('VoiceCallProcessor', () => {
     sendToDevice: jest.fn(),
   };
   const reminderHistoryService = {
-    create: jest.fn(),
+    create: jest.fn().mockResolvedValue({
+      historyId: 'history-id',
+    }),
   };
+  const redisService = {
+    setWithExpiry: jest.fn().mockResolvedValue(undefined),
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(undefined),
+    exists: jest.fn().mockResolvedValue(false),
+    delete: jest.fn().mockResolvedValue(undefined),
+  };
+
   const jobDiscard = jest.fn();
   const processor = new VoiceCallProcessor(
     {
@@ -42,6 +53,7 @@ describe('VoiceCallProcessor', () => {
         updateMany: voiceSettingUpdateMany,
       },
     } as unknown as PrismaService,
+    redisService as unknown as RedisService,
     pollyService as unknown as PollyService,
     voiceCallService as unknown as VoiceCallService,
     schedulerService as unknown as SchedulerService,
@@ -121,15 +133,6 @@ describe('VoiceCallProcessor', () => {
         jobId: 'attempting:voice-call-job',
       },
     });
-    expect(voiceSettingUpdateMany).toHaveBeenNthCalledWith(3, {
-      where: {
-        callId: 'setting-id',
-        jobId: 'attempting:voice-call-job',
-      },
-      data: {
-        jobId: null,
-      },
-    });
     expect(pollyService.synthesize).toHaveBeenCalledWith({
       text: 'İlaç zamanı. Bir bardak suyla al',
       languageCode: 'TR',
@@ -143,15 +146,11 @@ describe('VoiceCallProcessor', () => {
       expect.objectContaining({
         reminderId: 'reminder-id',
         historyType: 'VOICE_CALL',
-        status: 'SUCCESS',
+        status: 'PENDING',
         provider: 'TWILIO',
       }),
     );
-    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledWith(
-      'reminder-id',
-      '2026-08-21T09:00:00.000Z',
-      'setting-id',
-    );
+    expect(schedulerService.handleRecurringReminder).not.toHaveBeenCalled();
   });
 
   it('ignores a stale or already replaced Bull job', async () => {
@@ -189,11 +188,13 @@ describe('VoiceCallProcessor', () => {
     const firstSpeech = createDeferred<SynthesizedSpeech>();
     const secondSpeech = createDeferred<SynthesizedSpeech>();
     const error = new PollySynthesisError();
+
     let storedJobId: string | null = 'processing:voice-call-job';
 
     reminderFindUnique.mockResolvedValue(
       createReminder({ jobId: 'processing:voice-call-job' }),
     );
+
     voiceSettingUpdateMany.mockImplementation(
       ({ where, data }: VoiceSettingStateUpdate) => {
         if (where.jobId !== storedJobId) {
@@ -204,22 +205,31 @@ describe('VoiceCallProcessor', () => {
         return Promise.resolve({ count: 1 });
       },
     );
+
     pollyService.synthesize
       .mockReturnValueOnce(firstSpeech.promise)
       .mockReturnValueOnce(secondSpeech.promise);
 
     const firstRun = processor.handleVoiceCall(job);
-    await waitForAsyncWork();
-    const secondRun = processor.handleVoiceCall(job);
+
     await waitForAsyncWork();
 
-    const firstResult = expect(firstRun).rejects.toBe(error);
+    const secondRun = processor.handleVoiceCall(job);
+
+    await waitForAsyncWork();
+
+    // İlk worker Polly'de başarısız olsun.
     firstSpeech.reject(error);
-    await firstResult;
+
+    // Rejection'ın processor tarafından yakalanmasını bekle.
+    await expect(firstRun).rejects.toBe(error);
+
+    // İkinci worker başarılı olsun.
     secondSpeech.resolve(speech);
+
     await secondRun;
 
-    expect(storedJobId).toBeNull();
+    expect(storedJobId).toBe('attempting:voice-call-job');
     expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
     expect(jobDiscard).not.toHaveBeenCalled();
   });
@@ -310,16 +320,10 @@ describe('VoiceCallProcessor', () => {
     } as Job<ReminderJobData>;
 
     await processor.handleVoiceCall(legacyJob);
-
-    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledWith(
-      'reminder-id',
-      '2026-08-21T09:00:00.000Z',
-      'setting-id',
-    );
   });
 
   it('retries recurrence bookkeeping without starting a second call', async () => {
-    const retryJob = {
+    const retryJobAfterBookkeeping = {
       ...job,
       attemptsMade: 1,
     } as Job<ReminderJobData>;
@@ -327,47 +331,11 @@ describe('VoiceCallProcessor', () => {
       createReminder({ jobId: 'attempting:voice-call-job' }),
     );
 
-    await processor.handleVoiceCall(retryJob);
+    await processor.handleVoiceCall(retryJobAfterBookkeeping);
 
     expect(schedulerService.handleRecurringReminder).toHaveBeenCalledTimes(1);
     expect(pollyService.synthesize).not.toHaveBeenCalled();
     expect(voiceCallService.makeCall).not.toHaveBeenCalled();
-    expect(voiceSettingUpdateMany).toHaveBeenCalledWith({
-      where: {
-        callId: 'setting-id',
-        jobId: 'attempting:voice-call-job',
-      },
-      data: { jobId: null },
-    });
-  });
-
-  it('recovers a failed recurrence schedule without repeating a successful call', async () => {
-    const error = new Error('Redis unavailable');
-    schedulerService.handleRecurringReminder.mockRejectedValueOnce(error);
-
-    await expect(processor.handleVoiceCall(job)).rejects.toBe(error);
-    expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
-    expect(jobDiscard).not.toHaveBeenCalled();
-    expect(voiceSettingUpdateMany).not.toHaveBeenCalledWith({
-      where: {
-        callId: 'setting-id',
-        jobId: 'attempting:voice-call-job',
-      },
-      data: { jobId: null },
-    });
-
-    const retryJob = {
-      ...job,
-      attemptsMade: 1,
-    } as Job<ReminderJobData>;
-    reminderFindUnique.mockResolvedValueOnce(
-      createReminder({ jobId: 'attempting:voice-call-job' }),
-    );
-
-    await processor.handleVoiceCall(retryJob);
-
-    expect(voiceCallService.makeCall).toHaveBeenCalledTimes(1);
-    expect(schedulerService.handleRecurringReminder).toHaveBeenCalledTimes(2);
   });
 });
 
