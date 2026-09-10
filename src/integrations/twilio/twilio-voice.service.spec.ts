@@ -47,6 +47,8 @@ describe('TwilioVoiceService', () => {
         twilio: {
           phoneNumber: '+12025550123',
           voiceMediaBaseUrl: 'https://api.example.com/api/voice-call/media/',
+          voiceStatusCallbackUrl:
+            'https://api.example.com/api/voice-call/status',
         },
       }),
       redisService as unknown as RedisService,
