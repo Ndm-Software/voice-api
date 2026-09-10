@@ -9,10 +9,22 @@ import { RemindersService } from './reminders.service';
 describe('RemindersService', () => {
   const userId = '11111111-1111-4111-8111-111111111111';
   const reminderId = '22222222-2222-4222-8222-222222222222';
-  const reminder = { reminderId, userId };
+
+  const reminder = {
+    reminderId,
+    userId,
+    eventDatetime: new Date('2026-09-20T15:00:00.000Z'),
+    repeatType: RepeatType.DAILY,
+    repeatUntil: new Date('2026-09-30T15:00:00.000Z'),
+    status: 'ACTIVE',
+    isUrgent: false,
+  };
 
   let prisma: {
-    userSetting: { findUnique: jest.Mock };
+    $transaction: jest.Mock;
+    userSetting: {
+      findUnique: jest.Mock;
+    };
     reminder: {
       create: jest.Mock;
       findMany: jest.Mock;
@@ -20,8 +32,12 @@ describe('RemindersService', () => {
       update: jest.Mock;
       delete: jest.Mock;
     };
-    pushNotificationSetting: { create: jest.Mock };
-    voiceCallSetting: { create: jest.Mock };
+    pushNotificationSetting: {
+      create: jest.Mock;
+    };
+    voiceCallSetting: {
+      create: jest.Mock;
+    };
   };
 
   let schedulerService: {
@@ -30,26 +46,48 @@ describe('RemindersService', () => {
     cancelReminderJobs: jest.Mock;
   };
 
-  let timezoneService: { toUtc: jest.Mock };
+  let timezoneService: {
+    toUtc: jest.Mock;
+  };
+
   let service: RemindersService;
 
   beforeEach(() => {
     prisma = {
+      $transaction: jest.fn((callback) => {
+        const tx = {
+          reminder: {
+            create: prisma.reminder.create,
+          },
+          pushNotificationSetting: prisma.pushNotificationSetting,
+          voiceCallSetting: prisma.voiceCallSetting,
+        };
+
+        return (callback as (transaction: typeof tx) => unknown)(tx);
+      }),
+
       userSetting: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValue({ timezone: 'Europe/Istanbul' }),
+        findUnique: jest.fn().mockResolvedValue({
+          timezone: 'Europe/Istanbul',
+        }),
       },
+
       reminder: {
         create: jest.fn().mockResolvedValue(reminder),
+
         findMany: jest.fn().mockResolvedValue([reminder]),
+
         findFirst: jest.fn().mockResolvedValue(reminder),
+
         update: jest.fn().mockResolvedValue(reminder),
+
         delete: jest.fn().mockResolvedValue(reminder),
       },
+
       pushNotificationSetting: {
         create: jest.fn().mockResolvedValue({}),
       },
+
       voiceCallSetting: {
         create: jest.fn().mockResolvedValue({}),
       },
@@ -57,7 +95,9 @@ describe('RemindersService', () => {
 
     schedulerService = {
       scheduleReminder: jest.fn().mockResolvedValue(undefined),
+
       rescheduleReminder: jest.fn().mockResolvedValue(undefined),
+
       cancelReminderJobs: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -84,6 +124,8 @@ describe('RemindersService', () => {
       voiceMinutesBefore: 20,
     });
 
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+
     expect(prisma.reminder.create).toHaveBeenCalledWith({
       data: {
         userId,
@@ -106,7 +148,13 @@ describe('RemindersService', () => {
       },
     });
 
-    expect(prisma.voiceCallSetting.create).toHaveBeenCalled();
+    expect(prisma.voiceCallSetting.create).toHaveBeenCalledWith({
+      data: {
+        reminderId,
+        minutesBefore: 20,
+        enabled: true,
+      },
+    });
 
     expect(schedulerService.scheduleReminder).toHaveBeenCalledWith(reminderId);
   });
@@ -167,6 +215,8 @@ describe('RemindersService', () => {
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
 
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+
     prisma.reminder.findFirst.mockResolvedValue(null);
 
     await expect(service.findOne(userId, reminderId)).rejects.toBeInstanceOf(
@@ -184,7 +234,9 @@ describe('RemindersService', () => {
     const updateCalls = prisma.reminder.update.mock.calls as unknown[][];
 
     expect(updateCalls[0][0]).toEqual({
-      where: { reminderId },
+      where: {
+        reminderId,
+      },
       data: {
         title: 'Updated',
         eventDatetime: new Date('2026-09-21T16:00:00.000Z'),
@@ -202,7 +254,29 @@ describe('RemindersService', () => {
     );
 
     expect(prisma.reminder.delete).toHaveBeenCalledWith({
-      where: { reminderId },
+      where: {
+        reminderId,
+      },
+    });
+  });
+
+  it('rolls back reminder creation when scheduling fails', async () => {
+    const error = new Error('Scheduler unavailable');
+
+    schedulerService.scheduleReminder.mockRejectedValueOnce(error);
+
+    await expect(
+      service.create(userId, {
+        title: 'Reminder',
+        eventDatetime: '2026-09-20T15:00:00',
+        repeatType: RepeatType.DAILY,
+      }),
+    ).rejects.toBe(error);
+
+    expect(prisma.reminder.delete).toHaveBeenCalledWith({
+      where: {
+        reminderId,
+      },
     });
   });
 });

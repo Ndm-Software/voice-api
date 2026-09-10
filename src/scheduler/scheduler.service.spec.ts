@@ -41,6 +41,8 @@ describe('SchedulerService voice call scheduling', () => {
     } as unknown as PrismaService,
     pushQueue as unknown as Queue,
     voiceCallQueue as unknown as Queue,
+    {} as never,
+    {} as never,
   );
 
   beforeEach(() => {
@@ -204,6 +206,62 @@ describe('SchedulerService voice call scheduling', () => {
         delay: 7 * 60 * 60 * 1000,
       }),
     );
+  });
+  it('removes newly created queue jobs after a partial scheduling failure', async () => {
+    const eventDatetime = new Date('2026-08-21T09:00:00.000Z');
+
+    const pushJobId = `push-push-setting-id-${eventDatetime.getTime()}`;
+
+    const error = new Error('Voice queue unavailable');
+
+    reminderFindUnique.mockResolvedValueOnce({
+      reminderId: 'reminder-id',
+      userId: 'user-id',
+      status: 'ACTIVE',
+      eventDatetime,
+      pushNotifications: [
+        {
+          pushId: 'push-setting-id',
+          enabled: true,
+          jobId: '',
+          minutesBefore: 0,
+        },
+      ],
+      voiceCallSettings: [
+        {
+          callId: 'voice-setting-id',
+          enabled: true,
+          jobId: null,
+          minutesBefore: 0,
+        },
+      ],
+    });
+
+    pushQueue.add.mockResolvedValueOnce({
+      id: pushJobId,
+    });
+
+    voiceCallQueue.add.mockRejectedValueOnce(error);
+
+    const pushJobRemove = jest.fn().mockResolvedValue(undefined);
+
+    pushQueue.getJob.mockResolvedValueOnce({
+      remove: pushJobRemove,
+    });
+
+    await expect(service.scheduleReminder('reminder-id')).rejects.toBe(error);
+
+    expect(pushJobRemove).toHaveBeenCalled();
+
+    expect(pushSettingUpdateMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        pushId: 'push-setting-id',
+        jobId: pushJobId,
+      },
+      data: {
+        jobId: '',
+      },
+    });
   });
 
   it('advances one recurring occurrence only once when jobs finish together', async () => {

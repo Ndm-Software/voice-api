@@ -23,32 +23,22 @@ type AuthenticatedRequest = Request & {
 @Controller('user-settings')
 @UseGuards(JwtAuthGuard)
 export class UserSettingsController {
-  constructor(
-    private readonly userSettingsService: UserSettingsService,
-  ) {}
+  constructor(private readonly userSettingsService: UserSettingsService) {}
 
   /**
    * Giriş yapan kullanıcının ayarlarını getirir.
    */
   @Get('me')
   findMine(@Req() req: AuthenticatedRequest) {
-    return this.userSettingsService.findMine(
-      req.user.userId,
-    );
+    return this.userSettingsService.findMine(req.user.userId);
   }
 
   /**
    * Ayarlar yoksa oluşturur, varsa tamamen günceller.
    */
   @Put('me')
-  saveMine(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: SaveUserSettingsDto,
-  ) {
-    return this.userSettingsService.save(
-      req.user.userId,
-      dto,
-    );
+  saveMine(@Req() req: AuthenticatedRequest, @Body() dto: SaveUserSettingsDto) {
+    return this.userSettingsService.save(req.user.userId, dto);
   }
 
   /**
@@ -59,9 +49,6 @@ export class UserSettingsController {
     @Req() req: AuthenticatedRequest,
     @Body() dto: UpdateUserSettingsDto,
   ) {
-    return this.userSettingsService.update(
-      req.user.userId,
-      dto,
-    );
+    return this.userSettingsService.update(req.user.userId, dto);
   }
 }

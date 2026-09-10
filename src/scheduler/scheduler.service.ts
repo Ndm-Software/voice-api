@@ -128,7 +128,7 @@ export class SchedulerService {
         }
       }
     } catch (error: unknown) {
-      await this.restoreScheduledJobIds(scheduledTransitions);
+      await this.rollbackScheduledJobs(scheduledTransitions);
       throw error;
     }
   }
@@ -763,6 +763,35 @@ export class SchedulerService {
     }
 
     return targetDate;
+  }
+
+  private async rollbackScheduledJobs(
+    transitions: ScheduledJobTransition[],
+  ): Promise<void> {
+    for (const transition of [...transitions].reverse()) {
+      try {
+        const queue =
+          transition.kind === 'push' ? this.pushQueue : this.voiceCallQueue;
+
+        const queueJobId =
+          transition.kind === 'push'
+            ? this.getPushQueueJobId(transition.scheduledJobId)
+            : this.getVoiceQueueJobId(transition.scheduledJobId);
+
+        const job = await queue.getJob(queueJobId);
+
+        if (job) {
+          await job.remove();
+        }
+      } catch (error) {
+        this.logger.error(
+          `Queue rollback başarısız. Setting ID: ${transition.settingId}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    }
+
+    await this.restoreScheduledJobIds(transitions);
   }
 
   private async restoreScheduledJobIds(

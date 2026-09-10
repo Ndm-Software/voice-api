@@ -44,6 +44,7 @@ export class RemindersService {
     const repeatUntil = dto.repeatUntil
       ? this.timezoneService.toUtc(dto.repeatUntil, userSettings.timezone)
       : undefined;
+
     const eventDate = new Date(eventDatetime);
     const repeatUntilDate = repeatUntil ? new Date(repeatUntil) : undefined;
 
@@ -63,41 +64,65 @@ export class RemindersService {
       );
     }
 
-    const reminder = await this.prisma.reminder.create({
-      data: {
-        userId,
-        title: dto.title.trim(),
-        description: dto.description?.trim(),
-        eventDatetime: new Date(eventDatetime),
-        repeatType: dto.repeatType,
-        repeatUntil: repeatUntil ? new Date(repeatUntil) : undefined,
-        status: ReminderStatus.ACTIVE,
-        isUrgent: dto.isUrgent ?? false,
-      },
+    /*
+     * Reminder ve bağlı notification/voice kayıtları
+     * tek DB transaction içinde oluşturulur.
+     */
+    const reminder = await this.prisma.$transaction(async (tx) => {
+      const createdReminder = await tx.reminder.create({
+        data: {
+          userId,
+          title: dto.title.trim(),
+          description: dto.description?.trim(),
+          eventDatetime: eventDate,
+          repeatType: dto.repeatType,
+          repeatUntil: repeatUntilDate,
+          status: ReminderStatus.ACTIVE,
+          isUrgent: dto.isUrgent ?? false,
+        },
+      });
+
+      if (dto.pushMinutesBefore !== undefined) {
+        await tx.pushNotificationSetting.create({
+          data: {
+            reminderId: createdReminder.reminderId,
+            minutesBefore: dto.pushMinutesBefore,
+            jobId: '',
+            enabled: true,
+          },
+        });
+      }
+
+      if (dto.voiceMinutesBefore !== undefined) {
+        await tx.voiceCallSetting.create({
+          data: {
+            reminderId: createdReminder.reminderId,
+            minutesBefore: dto.voiceMinutesBefore,
+            enabled: true,
+          },
+        });
+      }
+
+      return createdReminder;
     });
 
-    if (dto.pushMinutesBefore !== undefined) {
-      await this.prisma.pushNotificationSetting.create({
-        data: {
+    /*
+     * Veri tabanına transfer başarılı olduktan sonra Bull job'ları oluşturulur.
+     *
+     * Scheduler başarısız olursa oluşturulan reminder
+     * ve cascade bağlı setting'ler temizlenir.
+     */
+    try {
+      await this.schedulerService.scheduleReminder(reminder.reminderId);
+    } catch (error) {
+      await this.prisma.reminder.delete({
+        where: {
           reminderId: reminder.reminderId,
-          minutesBefore: dto.pushMinutesBefore,
-          jobId: '',
-          enabled: true,
         },
       });
-    }
 
-    if (dto.voiceMinutesBefore !== undefined) {
-      await this.prisma.voiceCallSetting.create({
-        data: {
-          reminderId: reminder.reminderId,
-          minutesBefore: dto.voiceMinutesBefore,
-          enabled: true,
-        },
-      });
+      throw error;
     }
-
-    await this.schedulerService.scheduleReminder(reminder.reminderId);
 
     return this.findOne(userId, reminder.reminderId);
   }

@@ -6,12 +6,8 @@ import { PushNotificationService } from './push-notification.service';
 @Module({
   imports: [ConfigModule],
 
-  providers: [
-    PushNotificationService,
-  ],
+  providers: [PushNotificationService],
 
-  exports: [
-    PushNotificationService,
-  ],
+  exports: [PushNotificationService],
 })
 export class PushNotificationModule {}
