@@ -92,7 +92,6 @@ export class SchedulerService {
           pushSetting.pushId,
           pushSetting.minutesBefore,
           pushSetting.jobId,
-          reminder.isUrgent,
         );
 
         if (scheduledJobId) {
@@ -117,7 +116,6 @@ export class SchedulerService {
           voiceSetting.callId,
           voiceSetting.minutesBefore,
           voiceSetting.jobId,
-          reminder.isUrgent,
         );
 
         if (scheduledJobId) {
@@ -546,7 +544,6 @@ export class SchedulerService {
     pushId: string,
     minutesBefore: number,
     previousJobId: string,
-    isUrgent: boolean,
   ): Promise<string | null> {
     const targetDate = new Date(
       eventDatetime.getTime() - minutesBefore * 60 * 1000,
@@ -554,7 +551,6 @@ export class SchedulerService {
     const adjustedTargetDate = await this.adjustExecutionTimeForSilentHours(
       userId,
       targetDate,
-      isUrgent,
     );
     const delay = adjustedTargetDate.getTime() - Date.now();
 
@@ -607,7 +603,6 @@ export class SchedulerService {
     callId: string,
     minutesBefore: number,
     previousJobId: string | null,
-    isUrgent: boolean,
   ): Promise<string | null> {
     const targetDate = new Date(
       eventDatetime.getTime() - minutesBefore * 60 * 1000,
@@ -616,7 +611,6 @@ export class SchedulerService {
     const adjustedTargetDate = await this.adjustExecutionTimeForSilentHours(
       userId,
       targetDate,
-      isUrgent,
     );
 
     const delay = adjustedTargetDate.getTime() - Date.now();
@@ -677,12 +671,7 @@ export class SchedulerService {
   private async adjustExecutionTimeForSilentHours(
     userId: string,
     targetDate: Date,
-    isUrgent: boolean,
   ): Promise<Date> {
-    if (isUrgent) {
-      return targetDate;
-    }
-
     const userSetting = await this.prisma.userSetting.findUnique({
       where: { userId },
       select: { timezone: true },

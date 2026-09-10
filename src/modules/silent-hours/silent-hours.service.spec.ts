@@ -19,6 +19,9 @@ describe('SilentHoursService', () => {
       update: jest.Mock;
       delete: jest.Mock;
     };
+    reminder: {
+      findMany: jest.Mock;
+    };
   };
 
   const userId = '22222222-2222-4222-8222-222222222222';
@@ -42,8 +45,14 @@ describe('SilentHoursService', () => {
         update: jest.fn().mockResolvedValue(storedSilentHour),
         delete: jest.fn().mockResolvedValue(storedSilentHour),
       },
+      reminder: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
     };
-    service = new SilentHoursService(prisma as unknown as PrismaService);
+    service = new SilentHoursService(
+      prisma as unknown as PrismaService,
+      {} as never,
+    );
   });
 
   it('creates a silent hour for the authenticated user', async () => {

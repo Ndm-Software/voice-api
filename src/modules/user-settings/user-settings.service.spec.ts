@@ -2,35 +2,66 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { LanguagesService } from '../languages/languages.service';
+import { SchedulerService } from '../../scheduler/scheduler.service';
 import { UserSettingsService } from './user-settings.service';
 
 describe('UserSettingsService', () => {
   const userId = '11111111-1111-4111-8111-111111111111';
   const languageId = '22222222-2222-4222-8222-222222222222';
+
   let prisma: {
     userSetting: {
       findUnique: jest.Mock;
       upsert: jest.Mock;
       update: jest.Mock;
     };
+    reminder: {
+      findMany: jest.Mock;
+    };
   };
-  let languagesService: { findById: jest.Mock };
+
+  let languagesService: {
+    findById: jest.Mock;
+  };
+
+  let schedulerService: {
+    rescheduleReminder: jest.Mock;
+  };
+
   let service: UserSettingsService;
 
   beforeEach(() => {
     prisma = {
       userSetting: {
-        findUnique: jest.fn().mockResolvedValue({ settingId: 'setting-id' }),
-        upsert: jest.fn().mockResolvedValue({ userId }),
-        update: jest.fn().mockResolvedValue({ userId }),
+        findUnique: jest.fn().mockResolvedValue({
+          settingId: 'setting-id',
+        }),
+        upsert: jest.fn().mockResolvedValue({
+          userId,
+        }),
+        update: jest.fn().mockResolvedValue({
+          userId,
+        }),
+      },
+      reminder: {
+        findMany: jest.fn().mockResolvedValue([]),
       },
     };
+
     languagesService = {
-      findById: jest.fn().mockResolvedValue({ languageId }),
+      findById: jest.fn().mockResolvedValue({
+        languageId,
+      }),
     };
+
+    schedulerService = {
+      rescheduleReminder: jest.fn(),
+    };
+
     service = new UserSettingsService(
       prisma as unknown as PrismaService,
       languagesService as unknown as LanguagesService,
+      schedulerService as unknown as SchedulerService,
     );
   });
 
@@ -45,6 +76,7 @@ describe('UserSettingsService', () => {
     });
 
     expect(languagesService.findById).toHaveBeenCalledWith(languageId);
+
     expect(prisma.userSetting.upsert).toHaveBeenCalledWith({
       where: { userId },
       create: {
@@ -88,6 +120,16 @@ describe('UserSettingsService', () => {
         },
       },
     });
+
+    expect(prisma.reminder.findMany).toHaveBeenCalledWith({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        reminderId: true,
+      },
+    });
   });
 
   it('rejects invalid timezones before writing settings', async () => {
@@ -101,7 +143,9 @@ describe('UserSettingsService', () => {
         defaultCallBefore: 20,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+
     expect(prisma.userSetting.upsert).not.toHaveBeenCalled();
+    expect(prisma.reminder.findMany).not.toHaveBeenCalled();
   });
 
   it('updates only supplied settings after verifying the record exists', async () => {
@@ -120,10 +164,22 @@ describe('UserSettingsService', () => {
       }),
     );
 
+    expect(prisma.reminder.findMany).toHaveBeenCalledWith({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        reminderId: true,
+      },
+    });
+
     prisma.userSetting.findUnique.mockResolvedValue(null);
+
     await expect(service.update(userId, {})).rejects.toBeInstanceOf(
       NotFoundException,
     );
+
     expect(prisma.userSetting.update).toHaveBeenCalledTimes(1);
   });
 });

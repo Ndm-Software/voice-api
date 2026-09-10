@@ -21,6 +21,8 @@ const validEnvironment = {
   TWILIO_AUTH_TOKEN: 'twilio-auth-token',
   TWILIO_PHONE_NUMBER: '+10000000000',
   TWILIO_VOICE_MEDIA_BASE_URL: 'https://api.example.com/api/voice-call/media',
+  TWILIO_VOICE_STATUS_CALLBACK_URL:
+    'https://api.example.com/api/voice-call/status',
   AWS_REGION: 'eu-central-1',
 };
 
@@ -56,6 +58,7 @@ describe('validateEnvironment', () => {
       ...validEnvironment,
       JWT_ACCESS_SECRET: 'secret-that-must-not-appear',
     };
+
     delete (input as Partial<typeof input>).TWILIO_AUTH_TOKEN;
 
     expect(() => validateEnvironment(input)).toThrow(
@@ -153,6 +156,7 @@ describe('validateEnvironment', () => {
 
   it('uses safe fake-provider defaults outside production', () => {
     const input: Record<string, unknown> = { ...validEnvironment };
+
     delete input.OTP_PROVIDER;
     delete input.OTP_FAKE_CODE;
 
@@ -203,6 +207,7 @@ describe('validateEnvironment', () => {
 
   it('rejects a missing environment name', () => {
     const input: Record<string, unknown> = { ...validEnvironment };
+
     delete input.NODE_ENV;
 
     expect(() => validateEnvironment(input)).toThrow('NODE_ENV is required');
@@ -270,6 +275,7 @@ describe('validateEnvironment', () => {
 
   it('requires an AWS region for the configured Polly integration', () => {
     const input: Record<string, unknown> = { ...validEnvironment };
+
     delete input.AWS_REGION;
 
     expect(() => validateEnvironment(input)).toThrow('AWS_REGION is required');
@@ -334,6 +340,7 @@ describe('validateEnvironment', () => {
       AWS_ACCESS_KEY_ID: 'access-key',
       AWS_SECRET_ACCESS_KEY: 'secret-key',
     };
+
     delete input.AWS_REGION;
 
     expect(() => validateEnvironment(input)).toThrow(
