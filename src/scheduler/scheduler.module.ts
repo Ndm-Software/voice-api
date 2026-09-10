@@ -11,6 +11,8 @@ import { QUEUE_NAMES } from './constants/queue.constants';
 import { PushNotificationProcessor } from './processors/push-notification.processor';
 import { VoiceCallProcessor } from './processors/voice-call.processor';
 import { SchedulerService } from './scheduler.service';
+import { RedisIntegrationModule } from '../integrations/redis/redis-integration.module';
+import { VoiceCallStatusController } from './voice-call-status.controller';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { SchedulerService } from './scheduler.service';
     PollyModule,
     VoiceCallModule,
     PushNotificationModule,
+    RedisIntegrationModule,
     ReminderHistoryModule,
 
     BullModule.forRootAsync({
@@ -42,6 +45,8 @@ import { SchedulerService } from './scheduler.service';
       },
     ),
   ],
+
+  controllers: [VoiceCallStatusController],
 
   providers: [SchedulerService, PushNotificationProcessor, VoiceCallProcessor],
 

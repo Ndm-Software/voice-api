@@ -12,6 +12,14 @@ import {
   VOICE_JOB_STATE_PREFIXES,
 } from './constants/queue.constants';
 
+import { RedisService } from '../integrations/redis/redis.service';
+import {
+  TWILIO_VOICE_CALL_KEY_PREFIX,
+  TWILIO_VOICE_CALLBACK_PROCESSED_KEY_PREFIX,
+} from '../integrations/twilio/twilio-voice.constants';
+import { HistoryStatus } from '../generated/prisma/client';
+import { ReminderHistoryService } from '../modules/reminder-history/reminder-history.service';
+
 interface ScheduledJobTransition {
   kind: 'push' | 'voice';
   settingId: string;
@@ -42,6 +50,9 @@ export class SchedulerService {
 
     @InjectQueue(QUEUE_NAMES.VOICE_CALL)
     private readonly voiceCallQueue: Queue,
+
+    private readonly redisService: RedisService,
+    private readonly reminderHistoryService: ReminderHistoryService,
   ) {}
 
   async scheduleReminder(reminderId: string): Promise<void> {
@@ -167,6 +178,210 @@ export class SchedulerService {
         await job.remove();
       }
     }
+  }
+
+  async handleVoiceCallStatus(data: {
+    callSid: string;
+    callStatus: string;
+  }): Promise<void> {
+    const terminalStatus = data.callStatus.toLowerCase();
+
+    // Ara durumları işlemiyoruz.
+    if (
+      terminalStatus === 'initiated' ||
+      terminalStatus === 'ringing' ||
+      terminalStatus === 'answered'
+    ) {
+      this.logger.log(
+        `Twilio voice call ara durumu: ${terminalStatus}. Call SID: ${data.callSid}`,
+      );
+
+      return;
+    }
+
+    const terminalStatuses = new Set([
+      'completed',
+      'no-answer',
+      'busy',
+      'failed',
+      'canceled',
+    ]);
+
+    if (!terminalStatuses.has(terminalStatus)) {
+      this.logger.warn(
+        `Bilinmeyen Twilio call status: ${terminalStatus}. ` +
+          `Call SID: ${data.callSid}`,
+      );
+
+      return;
+    }
+
+    const callKey = `${TWILIO_VOICE_CALL_KEY_PREFIX}${data.callSid}`;
+
+    const callDataRaw = await this.redisService.get(callKey);
+
+    if (!callDataRaw) {
+      this.logger.warn(
+        `Twilio callback için Redis kaydı bulunamadı. ` +
+          `Call SID: ${data.callSid}`,
+      );
+
+      return;
+    }
+
+    let callData: {
+      reminderId: string;
+      userId: string;
+      settingId: string;
+      scheduledFor: string;
+      attempt: number;
+      jobId: string;
+      historyId?: string | null;
+    };
+
+    try {
+      callData = JSON.parse(callDataRaw) as typeof callData;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Twilio callback Redis verisi parse edilemedi. ` +
+          `Call SID: ${data.callSid}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      return;
+    }
+
+    /*
+     * Sadece terminal callback'lerde idempotency uyguluyoruz.
+     * Böylece initiated/ringing/answered callback'leri
+     * completed callback'ini engellemez.
+     */
+    const processedKey = `${TWILIO_VOICE_CALLBACK_PROCESSED_KEY_PREFIX}${data.callSid}`;
+
+    const firstProcess = await this.redisService.setIfAbsentWithExpiry(
+      processedKey,
+      '1',
+      60 * 60,
+    );
+
+    if (!firstProcess) {
+      this.logger.warn(
+        `Twilio terminal callback daha önce işlendi. ` +
+          `Call SID: ${data.callSid}`,
+      );
+
+      return;
+    }
+
+    /*
+     * completed = çağrı Twilio tarafında tamamlandı.
+     */
+    if (terminalStatus === 'completed') {
+      if (callData.historyId) {
+        await this.reminderHistoryService.updateStatus(
+          callData.historyId,
+          HistoryStatus.SUCCESS,
+        );
+      }
+
+      await this.clearVoiceCallJob(
+        callData.settingId,
+        `attempting:${callData.jobId}`,
+      );
+
+      await this.handleRecurringReminder(
+        callData.reminderId,
+        callData.scheduledFor,
+        callData.settingId,
+      );
+
+      await this.redisService.delete(callKey);
+
+      this.logger.log(`Twilio voice call SUCCESS. Call SID: ${data.callSid}`);
+
+      return;
+    }
+
+    /*
+     * no-answer / busy / failed / canceled
+     */
+    const errorMessage = `Twilio call status: ${terminalStatus}`;
+
+    if (callData.historyId) {
+      await this.reminderHistoryService.updateStatus(
+        callData.historyId,
+        HistoryStatus.FAILED,
+        errorMessage,
+      );
+    }
+
+    /*
+     * İlk deneme başarısızsa 2 dakika sonra ikinci deneme.
+     */
+    if (callData.attempt < 2) {
+      const retryJob = await this.voiceCallQueue.add(
+        JOB_NAMES.MAKE_VOICE_CALL,
+        {
+          reminderId: callData.reminderId,
+          userId: callData.userId,
+          settingId: callData.settingId,
+          scheduledFor: callData.scheduledFor,
+          attempt: callData.attempt + 1,
+        },
+        {
+          delay: 2 * 60 * 1000,
+          attempts: 1,
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+
+      await this.prisma.voiceCallSetting.updateMany({
+        where: {
+          callId: callData.settingId,
+          enabled: true,
+          jobId: `attempting:${callData.jobId}`,
+        },
+        data: {
+          jobId: String(retryJob.id),
+          retryCount: {
+            increment: 1,
+          },
+        },
+      });
+
+      await this.redisService.delete(callKey);
+
+      this.logger.warn(
+        `Twilio voice call başarısız. ` +
+          `2 dakika sonra retry planlandı. ` +
+          `Call SID: ${data.callSid}, ` +
+          `Attempt: ${callData.attempt}`,
+      );
+
+      return;
+    }
+
+    /*
+     * İkinci deneme de başarısız.
+     */
+    await this.clearVoiceCallJob(
+      callData.settingId,
+      `attempting:${callData.jobId}`,
+    );
+
+    await this.handleRecurringReminder(
+      callData.reminderId,
+      callData.scheduledFor,
+      callData.settingId,
+    );
+
+    await this.redisService.delete(callKey);
+
+    this.logger.error(
+      `Twilio voice call maksimum deneme sayısına ulaştı. ` +
+        `Call SID: ${data.callSid}`,
+    );
   }
 
   async handleRecurringReminder(
@@ -604,5 +819,20 @@ export class SchedulerService {
     }
 
     return storedJobId;
+  }
+
+  private async clearVoiceCallJob(
+    callId: string,
+    jobId: string,
+  ): Promise<void> {
+    await this.prisma.voiceCallSetting.updateMany({
+      where: {
+        callId,
+        jobId,
+      },
+      data: {
+        jobId: null,
+      },
+    });
   }
 }
