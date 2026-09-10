@@ -28,6 +28,7 @@ describe('PollyModule', () => {
     })
       .overrideProvider(ConfigService)
       .useValue({
+        get: jest.fn().mockReturnValue('false'),
         getOrThrow: jest.fn().mockReturnValue('eu-central-1'),
       })
       .compile();

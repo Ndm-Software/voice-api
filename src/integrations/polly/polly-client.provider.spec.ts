@@ -5,13 +5,21 @@ import { createPollyClient } from './polly-client.provider';
 
 describe('createPollyClient', () => {
   it('creates a client with the configured AWS region', async () => {
+    const get = jest.fn().mockReturnValue('false');
     const getOrThrow = jest.fn().mockReturnValue('eu-central-1');
-    const configService = { getOrThrow } as unknown as ConfigService;
+
+    const configService = {
+      get,
+      getOrThrow,
+    } as unknown as ConfigService;
+
     const client = createPollyClient(configService);
 
     expect(client).toBeInstanceOf(PollyClient);
     await expect(client.config.region()).resolves.toBe('eu-central-1');
     await expect(client.config.maxAttempts()).resolves.toBe(3);
+
+    expect(get).toHaveBeenCalledWith('POLLY_MOCK');
     expect(getOrThrow).toHaveBeenCalledWith('aws.region');
 
     client.destroy();
@@ -19,7 +27,9 @@ describe('createPollyClient', () => {
 
   it('fails before creating a client when the AWS region is missing', () => {
     const configError = new Error('Missing configuration value: aws.region');
+
     const configService = {
+      get: jest.fn().mockReturnValue('false'),
       getOrThrow: jest.fn(() => {
         throw configError;
       }),
