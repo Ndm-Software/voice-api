@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   Headers,
+  HttpException,
+  HttpStatus,
   Ip,
   Post,
   Req,
@@ -27,12 +29,15 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendRegistrationOtpDto } from './dto/resend-registration-otp.dto';
 import { VerifyRegistrationDto } from './dto/verify-registration.dto';
+import { createHash } from 'node:crypto';
+import { RedisService } from '../../integrations/redis/redis.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {}
 
   @Post('register')
@@ -56,17 +61,30 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() dto: LoginDto,
+    @Ip() ipAddress: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.login(dto);
+    const normalizedEmail = dto.email.trim().toLowerCase();
 
-    if (dto.platform === PlatformType.WEB) {
-      this.setAuthCookies(res, result);
+    await this.checkLoginRateLimit(normalizedEmail, ipAddress);
 
-      return { message: 'Login successful.' };
+    try {
+      const result = await this.authService.login(dto);
+
+      if (dto.platform === PlatformType.WEB) {
+        this.setAuthCookies(res, result);
+
+        return { message: 'Login successful.' };
+      }
+
+      return this.createNativeTokenResponse('Login successful.', result);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        await this.recordFailedLogin(normalizedEmail, ipAddress);
+      }
+
+      throw error;
     }
-
-    return this.createNativeTokenResponse('Login successful.', result);
   }
 
   @Post('refresh')
@@ -128,6 +146,72 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   getMe(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getMe(user.userId);
+  }
+
+  private static readonly LOGIN_RATE_LIMIT = 5;
+  private static readonly LOGIN_RATE_LIMIT_TTL_SECONDS = 15 * 60;
+
+  private async checkLoginRateLimit(
+    email: string,
+    ipAddress: string,
+  ): Promise<void> {
+    try {
+      const emailKey = this.createLoginRateLimitKey('email', email);
+      const ipKey = this.createLoginRateLimitKey('ip', ipAddress);
+
+      const [emailCount, ipCount] = await Promise.all([
+        this.redisService.get(emailKey),
+        this.redisService.get(ipKey),
+      ]);
+
+      const emailAttempts = Number(emailCount ?? 0);
+      const ipAttempts = Number(ipCount ?? 0);
+
+      if (
+        emailAttempts >= AuthController.LOGIN_RATE_LIMIT ||
+        ipAttempts >= AuthController.LOGIN_RATE_LIMIT
+      ) {
+        throw new HttpException(
+          'Too many login attempts. Please try again later.',
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+    } catch (error) {
+      if (error instanceof HttpException && error.getStatus() === 429) {
+        throw error;
+      }
+
+      // Redis rate limiter kullanılamıyorsa da  login akışını bozulmasın diye.
+    }
+  }
+
+  private async recordFailedLogin(
+    email: string,
+    ipAddress: string,
+  ): Promise<void> {
+    try {
+      const emailKey = this.createLoginRateLimitKey('email', email);
+      const ipKey = this.createLoginRateLimitKey('ip', ipAddress);
+
+      await Promise.all([
+        this.redisService.incrementWithExpiry(
+          emailKey,
+          AuthController.LOGIN_RATE_LIMIT_TTL_SECONDS,
+        ),
+        this.redisService.incrementWithExpiry(
+          ipKey,
+          AuthController.LOGIN_RATE_LIMIT_TTL_SECONDS,
+        ),
+      ]);
+    } catch {
+      // Redis rate limiter hatası login işlemini bozmasın.
+    }
+  }
+
+  private createLoginRateLimitKey(type: 'email' | 'ip', value: string): string {
+    const hash = createHash('sha256').update(value).digest('hex');
+
+    return `auth:login:rate-limit:${type}:${hash}`;
   }
 
   private setAuthCookies(

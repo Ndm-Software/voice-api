@@ -7,6 +7,7 @@ import { PlatformType } from '../../generated/prisma/enums';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RedisService } from '../../integrations/redis/redis.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -22,6 +23,10 @@ describe('AuthController', () => {
   let cookie: jest.Mock;
   let clearCookie: jest.Mock;
   let configService: { get: jest.Mock };
+  let redisService: {
+    get: jest.Mock;
+    incrementWithExpiry: jest.Mock;
+  };
 
   const tokens = {
     accessToken: 'access-token',
@@ -52,11 +57,19 @@ describe('AuthController', () => {
     clearCookie = jest.fn();
     response = { cookie, clearCookie } as unknown as Response;
     configService = { get: jest.fn().mockReturnValue('test') };
+    redisService = {
+      get: jest.fn().mockResolvedValue(null),
+      incrementWithExpiry: jest.fn().mockResolvedValue(1),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: authService },
+        {
+          provide: RedisService,
+          useValue: redisService,
+        },
         {
           provide: ConfigService,
           useValue: configService,
@@ -122,7 +135,11 @@ describe('AuthController', () => {
   it('stores web login tokens only in HttpOnly cookies', async () => {
     authService.login.mockResolvedValue(tokens);
 
-    const result = await controller.login(loginDto(PlatformType.WEB), response);
+    const result = await controller.login(
+      loginDto(PlatformType.WEB),
+      '203.0.113.10',
+      response,
+    );
 
     expect(cookie).toHaveBeenCalledTimes(2);
     expect(cookie).toHaveBeenNthCalledWith(
@@ -144,7 +161,11 @@ describe('AuthController', () => {
     configService.get.mockReturnValue('production');
     authService.login.mockResolvedValue(tokens);
 
-    await controller.login(loginDto(PlatformType.WEB), response);
+    await controller.login(
+      loginDto(PlatformType.WEB),
+      '203.0.113.10',
+      response,
+    );
 
     expect(cookie).toHaveBeenNthCalledWith(
       1,
@@ -165,7 +186,11 @@ describe('AuthController', () => {
     async (platform) => {
       authService.login.mockResolvedValue(tokens);
 
-      const result = await controller.login(loginDto(platform), response);
+      const result = await controller.login(
+        loginDto(platform),
+        '203.0.113.10',
+        response,
+      );
 
       expect(cookie).not.toHaveBeenCalled();
       expect(result).toEqual({
